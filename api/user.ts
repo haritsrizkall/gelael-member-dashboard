@@ -1,4 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { getApiUrl } from "@/utils/utils"
 import axios from "axios"
 import { getServerSession } from "next-auth"
 
@@ -9,7 +10,7 @@ interface UserAPI {
 const userAPI: UserAPI = {
   me: async (token: string) => {
     const session = await getServerSession(authOptions)
-    const resp = await axios.get('http://103.250.11.32/api/users/me', {
+    const resp = await axios.get(`${getApiUrl()}/users/me`, {
       headers: {
         Authorization: "Bearer " + token
       }

@@ -1,3 +1,4 @@
+import { getApiUrl } from "@/utils/utils"
 import axios from "axios"
 
 
@@ -12,7 +13,7 @@ interface AuthAPI {
 
 const authAPI: AuthAPI = {
   login: async (input: LoginInput) => {
-    const resp = await axios.post('http://103.250.11.32/api/auth/login', input)
+    const resp = await axios.post(`${getApiUrl()}/auth/login`, input)
 
     return resp
   } 
