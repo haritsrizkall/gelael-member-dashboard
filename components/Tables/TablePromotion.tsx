@@ -149,7 +149,7 @@ const TablePromotion = ({promotions}: TablePromotionProps) => {
         </tbody>
       </table>
     </div>
-  </div>
+    </div>
   );
 }
 

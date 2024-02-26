@@ -7,5 +7,5 @@ export type Promotion = {
 	expired_at: string;
 	created_at: string;
 	updated_at: string;
-	promotion_items: any[] | null;
+	promotion_items?: any[] | null;
 };

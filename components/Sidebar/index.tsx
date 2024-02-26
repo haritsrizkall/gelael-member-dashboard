@@ -8,6 +8,7 @@ import { signOut } from "next-auth/react";
 import { MdDiscount } from "react-icons/md";
 import { CiDiscount1 } from "react-icons/ci";
 import { FaUsers } from "react-icons/fa";
+import { IoIosNotifications } from "react-icons/io";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -165,6 +166,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 >
                   <FaUsers className="fill-current" />
                   User
+                </Link>
+              </li>
+              {/* <!-- Menu Item User --> */}
+              
+              {/* <!-- Menu Item Notifications --> */}
+              <li>
+                <Link
+                  href="/dashboard/notifications"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    pathname.includes("notifications") &&
+                    "bg-graydark dark:bg-meta-4"
+                  }`}
+                >
+                  <IoIosNotifications className="fill-current" />
+                  Notifications
                 </Link>
               </li>
               {/* <!-- Menu Item User --> */}
