@@ -72,7 +72,7 @@ const EditPromotion = () => {
   return  (
     <>
       <Breadcrumb 
-        pageName="Add Promotion" 
+        pageName="Edit Promotion" 
         parent={{name: "Promotions", link: "/dashboard/promotions"}}/>
       <div className="flex flex-col gap-9">
           {/* <!-- Contact Form --> */}

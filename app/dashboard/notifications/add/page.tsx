@@ -81,10 +81,10 @@ const AddNotification = () => {
   }
 
   const loadOptions = (inputValue: string) => {
-    return memberAPI.getMembers(session?.user?.token as string, 1, 15, inputValue).then(resp => {
+    return memberAPI.getMemberList(session?.user?.token as string, 1, 15, inputValue).then(resp => {
       let memberOptions = resp.map(member => {
         return {
-          label: `${member.name}`,
+          label: `${member.name} - ${member.email}`,
           value: member.id
         }
       })
@@ -105,7 +105,7 @@ const AddNotification = () => {
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
           <h3 className="font-medium text-black dark:text-white">
-            Add Promotions
+            Add Notifications
           </h3>
         </div>
         <div>
