@@ -3,3 +3,9 @@ export type DeleteResponse = {
   message: string;
   data: any;
 };
+
+export type SuccessResponse = {
+  status: number;
+  message: string;
+  data: any;
+};

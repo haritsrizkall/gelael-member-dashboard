@@ -1,4 +1,5 @@
 export type MemberList = {
   id: number;
   name: string;
+  email: string;
 }

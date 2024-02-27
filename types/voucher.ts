@@ -9,3 +9,14 @@ export type Voucher = {
   created_at: string;
   updated_at: string;
 }
+
+export type VoucherMember = {
+  id: number;
+  member_id: number;
+  voucher_id: number;
+  used: boolean;
+  created_at: Date;
+  updated_at: Date;
+  email: string;
+  name: string;
+}
