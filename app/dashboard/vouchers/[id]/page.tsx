@@ -1,119 +1,152 @@
 "use client"
-import uploadAPI from "@/api/upload"
-import voucherAPI, { InputCreateVoucher } from "@/api/voucher"
+
+import memberAPI from "@/api/member";
+import uploadAPI from "@/api/upload";
+import voucherAPI, { InputSetVoucherMembers } from "@/api/voucher";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb"
-import moment from "moment"
-import { useSession } from "next-auth/react"
-import { useParams } from "next/navigation"
-import { useEffect, useState } from "react"
-import { z } from "zod"
+import { Voucher, VoucherStats, defaultVoucher, defaultVoucherStats } from "@/types/voucher";
+import { cn } from "@/utils/utils";
+import moment from "moment";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import AsyncSelect from 'react-select/async';
 
+const Members = () => {
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [voucher, setVoucher] = useState<Voucher>(defaultVoucher());
+  const [voucherStats, setVoucherStats] = useState<VoucherStats>(defaultVoucherStats());
+  const [image, setImage] = useState<File | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(false);
+  const { data: session, status } = useSession();
+  const params = useParams();
 
-const Voucher = () => {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [image, setImage] = useState<File | undefined>(undefined)
-  const [imageName, setImageName] = useState('')
-  const [expiredAt, setExpiredAt] = useState('')
-  const params = useParams() 
-  const { data: session } = useSession()
-  const token = session?.user?.token as string
+  const getVoucherDetail = async () => {
+    try {
+      const token = session?.user?.token as string;
+      const resp = await voucherAPI.getDetail(token, parseInt(params.id as string));
+      console.log("resp", resp);
+      setVoucher({
+        ...resp.voucher_data,
+        expired_at: moment(resp.voucher_data.expired_at).format("YYYY-MM-DD"),
+        start_at: moment(resp.voucher_data.start_at).format("YYYY-MM-DD")
+      });
+      setVoucherStats(resp.stats);
+    } catch (error) {
+      console.log("error", error);
+    }
+  }
 
-  const getVoucher = async () => {
-    const resp = await voucherAPI.getById(token, parseInt(params.id as string))
-    if (resp) {
-      console.log(resp)
-      setTitle(resp.title)
-      setDescription(resp.description)
-      setImageName(resp.image.split('/').pop() as string)
-      setExpiredAt(moment(resp.expired_at).format('YYYY-MM-DD'))
+  const handleEdit = async () => {
+    try {
+      setLoading(true);
+      const token = session?.user?.token as string;
+      const input = {
+        id: voucher.id,
+        title: voucher.title,
+        description: voucher.description,
+        image: voucher.image.split("/").pop() as string,
+        expired_at: new Date(voucher.expired_at),
+        start_at: new Date(voucher.start_at),
+      }
+      if (image == undefined) {
+        const resp = await voucherAPI.updateVoucher(token, input);
+      }else {
+        const respImage = await uploadAPI.upload(token, { file: image as File });
+        input.image = respImage.data.filename.split("/").pop() as string;
+        const resp = await voucherAPI.updateVoucher(token, input);
+        setVoucher({...voucher, image: respImage.data.filename});
+        setImage(undefined);
+      }
+      setEditMode(false);
+      alert("Voucher updated successfully");
+    } catch (error) {
+      console.log("error", error);
+      alert("Failed to update voucher");
+    }finally {
+      setLoading(false);
     }
   }
 
   useEffect(() => {
-    if (params.id) {
-      getVoucher()
-    }
-  }, [])
-
-  const updatePromotionSchema = z.object({
-    title: z.string(),
-    description: z.string(),
-    image: z.string(),
-    expired_at: z.date(),
-  })
-
-  const handleSubmit = async () => {
-    const token = session?.user?.token as string
-    try {
-      const input = {
-        title,
-        description,
-        image: "",
-        expired_at: new Date(expiredAt),
-      }
-      updatePromotionSchema.parse(input)
-      console.log(input)
-      console.log("token", token)
-      if (image == undefined) {
-        const resp = await voucherAPI.updateVoucher(token, {
-          id: parseInt(params.id as string),
-          title,
-          description,
-          image: imageName,
-          expired_at: new Date(expiredAt),
-        })
-        if (resp) {
-          console.log(resp)
-          alert('Voucher updated successfully')
-        }
-      }else {
-        const resp = await uploadAPI.upload(token, { file: image as File })
-        const respVoucher = await voucherAPI.updateVoucher(token, {
-          id: parseInt(params.id as string),
-          title,
-          description,
-          image: resp.data.filename.split('/').pop() as string,
-          expired_at: new Date(expiredAt),
-        })
-  
-        if (respVoucher) {
-          console.log(respVoucher)
-          alert('Voucher updated successfully')
-        }
-      }
-    } catch (error) {
-      console.log(error);
-      alert("Failed to update voucher");
-    }
-   
-  }
+    getVoucherDetail();
+  }, [params.id])
 
   return (
     <>
       <Breadcrumb
-        pageName="Edit Voucher"
+        pageName="Voucher Detail"
         parent={{ name: "Vouchers", link: "/dashboard/vouchers" }}
       />
       <div className="flex flex-col gap-9">
-          {/* <!-- Contact Form --> */}
+        <div className="grid grid-cols-4 gap-4">
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
-                Edit Voucher
+                Total Voucher
               </h3>
             </div>
-            <div>
-              <div className="p-6.5">
+            <div className="py-4 px-6.5">
+              <p>{voucherStats.total_vouchers}</p>
+            </div>
+          </div>
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                Unused Vouchers 
+              </h3>
+            </div>
+            <div className="py-4 px-6.5">
+              <p>{voucherStats.total_unused_vouchers}</p>
+            </div>
+          </div>
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                Used vouchers
+              </h3>
+            </div>
+            <div className="py-4 px-6.5">
+              <p>{voucherStats.total_used_vouchers}</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          {/* <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+            <h3 className="font-medium text-black dark:text-white">
+              Voucher Stats
+            </h3>
+          </div> */}
+        </div>
+        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+            <h3 className="font-medium text-black dark:text-white">
+              Voucher Detail
+            </h3>
+          </div>
+          <div>
+            <div className="p-6.5 flex">
+              <div className="mr-10 flex-none">
+                <Image
+                  src={voucher?.image}
+                  loader={() => voucher.image}
+                  alt="voucher"
+                  width={300}
+                  height={300}
+                />
+              </div>
+              <div className="flex-1 grow">
                 <div className="mb-4.5">
                   <label className="mb-2.5 block text-black dark:text-white">
                     Title
                   </label>
                   <input
                     required
-                    onChange={(e) => setTitle(e.target.value)}
-                    value={title}
+                    disabled={!editMode}
                     type="text"
+                    value={voucher?.title}
+                    onChange={(e) => setVoucher({...voucher, title: e.target.value})}
                     placeholder="title"
                     className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
@@ -125,19 +158,22 @@ const Voucher = () => {
                   </label>
                     <input
                       required
-                      onChange={(e) => setDescription(e.target.value)}
-                      value={description}
+                      disabled={!editMode}
+                      onChange={(e) => setVoucher({...voucher, description: e.target.value})}
+                      value={voucher?.description}
                       type="text"
                       placeholder="description"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
                 </div>
 
+
                 <div className="mb-4.5">
                   <label className="mb-2.5 block text-black dark:text-white">
                     Image (Kosongkan jika tidak ingin update image)
                   </label>
                   <input
+                    disabled={!editMode}
                     required
                     onChange={(e) => setImage(e.target.files?.[0])}
                     type="file"
@@ -147,31 +183,100 @@ const Voucher = () => {
 
                 <div className="mb-4.5">
                   <label className="mb-2.5 block text-black dark:text-white">
+                    Type
+                  </label>
+                    <input
+                      required
+                      type="text"
+                      placeholder="text"
+                      value={voucher?.type}
+                      disabled
+                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                    />
+                </div>
+
+                <div className="mb-4.5">
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    Amount
+                  </label>
+                    <input
+                      required
+                      disabled
+                      value={voucher?.amount}
+                      type="currency"
+                      placeholder="amount"
+                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                    />
+                </div>
+
+                <div className="mb-4.5">
+                  <label className="mb-2.5 block text-black dark:text-white">
                     Expired at
                   </label>
                   <div className="relative">
                     <input
                       required
-                      onChange={(e) => setExpiredAt(e.target.value)}
-                      value={expiredAt}
+                      disabled={!editMode}
+                      onChange={(e) => setVoucher({...voucher, expired_at: e.target.value})}
+                      value={voucher?.expired_at}
                       type="date"
                       className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
                   </div>
                 </div>
 
-                <button
-                  onClick={handleSubmit}
-                  className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray"
-                >
-                  Edit Promotion
-                </button>
+                <div className="mb-4.5">
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    Start at
+                  </label>
+                  <div className="relative">
+                    <input
+                      required
+                      disabled={!editMode}
+                      onChange={(e) => setVoucher({...voucher, start_at: e.target.value})}
+                      value={voucher?.start_at}
+                      type="date"
+                      className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                    />
+                  </div>
+                </div>
               </div>
+            </div> 
+          </div>
+          <div>
+            <div className="p-6.5 flex justify-end">
+              {
+                !editMode ? (
+                  <button
+                    onClick={() => setEditMode(!editMode)}
+                    className="flex items-center gap-2.5 bg-primary py-3 px-6.5 rounded font-bold text-white transition hover:bg-primary-dark"
+                  >
+                    <span>Edit</span>
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setEditMode(!editMode)}
+                      className="flex items-center gap-2.5 bg-gray py-3 px-6.5 rounded font-bold text-graydark transition hover:bg-primary-dark mr-4.5"
+                    >
+                      <span>Cancel</span>
+                    </button>
+                    <button
+                      onClick={handleEdit}
+                      className={cn("flex items-center gap-2.5 bg-primary py-3 px-6.5 rounded font-bold text-white transition hover:bg-primary-dark", loading ? "bg-gray text-primary" : "")}
+                    >
+                      <span>{loading ? "Loading..." : "Save"}</span>
+                    </button>
+                  </>
+                  
+                )
+              }
             </div>
           </div>
         </div>
+      </div>
     </>
   )
 }
 
-export default Voucher
+export default Members

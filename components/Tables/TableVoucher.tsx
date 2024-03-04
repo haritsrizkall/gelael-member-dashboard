@@ -118,7 +118,7 @@ const TableVoucher = ({vouchers}: TableVoucherProps) => {
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
                     <button>
-                      <Link href={`/dashboard/vouchers/${voucher.id}/set`}>
+                      <Link href={`/dashboard/vouchers/${voucher.id}`}>
                         <FaEdit className="text-primary" />
                       </Link>
                     </button>

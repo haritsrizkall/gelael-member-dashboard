@@ -1,5 +1,5 @@
 import { DeleteResponse, SuccessResponse } from "@/types/response";
-import { Voucher, VoucherMember } from "@/types/voucher";
+import { Voucher, VoucherDetailResponse, VoucherMember } from "@/types/voucher";
 import { getApiUrl } from "@/utils/utils";
 import axios from "axios";
 
@@ -11,6 +11,7 @@ interface VoucherAPI {
   deleteVoucher: (token: string, id: number) => Promise<DeleteResponse>;
   updateVoucher: (token: string, input: InputUpdateVoucher) => Promise<Voucher>;
   setVoucherMembers: (token: string, input: InputSetVoucherMembers) => Promise<SuccessResponse>;
+  getDetail: (token: string, id: number) => Promise<VoucherDetailResponse>;
 }
 
 export type InputCreateVoucher = {
@@ -20,6 +21,7 @@ export type InputCreateVoucher = {
   amount: number;
   image: string;
   expired_at: Date;
+  start_at: Date;
 }
 
 export type InputUpdateVoucher = {
@@ -28,6 +30,7 @@ export type InputUpdateVoucher = {
   description: string;
   image: string;
   expired_at: Date;
+  start_at: Date;
 }
 
 export type InputSetVoucherMembers = {
@@ -37,6 +40,14 @@ export type InputSetVoucherMembers = {
 
 
 const voucherAPI: VoucherAPI = {
+  getDetail: async (token: string, id: number) => {
+    const resp = await axios.get(`${getApiUrl()}/vouchers/${id}/detail`, {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    })
+    return resp.data.data as VoucherDetailResponse
+  },
   setVoucherMembers: async (token: string, input: InputSetVoucherMembers) => {
     const resp = await axios.post(`${getApiUrl()}/vouchers/set-vouchers`, input, {
       headers: {
