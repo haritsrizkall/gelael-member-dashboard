@@ -1,11 +1,13 @@
+import { Meta } from "@/types/meta";
 import { DeleteResponse, SuccessResponse } from "@/types/response";
-import { Voucher, VoucherDetailResponse, VoucherMember } from "@/types/voucher";
+import { Voucher, VoucherDetailResponse } from "@/types/voucher";
+import { VoucherMemberWithNameAndEmail } from "@/types/voucherMember";
 import { getApiUrl } from "@/utils/utils";
 import axios from "axios";
 
 interface VoucherAPI {
   getVouchers: (token: string, page: number, pageSize: number, isExpired?: boolean) => Promise<Voucher[]>;
-  getVoucherMemberByVoucherId: (token: string, voucherId: number) => Promise<VoucherMember[]>;
+  getVoucherMemberByVoucherId: (token: string, voucherId: number) => Promise<getVoucherMemberByVoucherIdResponse>;
   getById: (token: string, id: number) => Promise<Voucher>;
   createVoucher: (token: string, input: InputCreateVoucher) => Promise<Voucher>;
   deleteVoucher: (token: string, id: number) => Promise<DeleteResponse>;
@@ -38,6 +40,11 @@ export type InputSetVoucherMembers = {
   member_ids: number[];
 }
 
+export type getVoucherMemberByVoucherIdResponse = {
+  data: VoucherMemberWithNameAndEmail[]
+  meta: Meta
+}
+
 
 const voucherAPI: VoucherAPI = {
   getDetail: async (token: string, id: number) => {
@@ -67,7 +74,7 @@ const voucherAPI: VoucherAPI = {
   getVouchers: async (token: string, page: number, pageSize: number, isExpired?: boolean) => {
     const url = new URL(`${getApiUrl()}/vouchers`)
     url.searchParams.append("page", page.toString())
-    url.searchParams.append("pageSize", pageSize.toString())
+    url.searchParams.append("page_size", pageSize.toString())
     if (isExpired) {
       url.searchParams.append("isExpired", "true")
     }
@@ -85,7 +92,7 @@ const voucherAPI: VoucherAPI = {
         Authorization: "Bearer " + token
       }
     })
-    return resp.data.data as VoucherMember[]
+    return resp.data as getVoucherMemberByVoucherIdResponse
   },
   getById: async (token: string, id: number) => {
     const resp = await axios.get(`${getApiUrl()}/vouchers/${id}`, {

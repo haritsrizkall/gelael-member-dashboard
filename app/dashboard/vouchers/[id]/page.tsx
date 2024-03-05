@@ -4,8 +4,10 @@ import memberAPI from "@/api/member";
 import uploadAPI from "@/api/upload";
 import voucherAPI, { InputSetVoucherMembers } from "@/api/voucher";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb"
+import TableVoucherMember from "@/components/Tables/TableVoucherMember";
 import { Voucher, VoucherStats, defaultVoucher, defaultVoucherStats } from "@/types/voucher";
-import { cn } from "@/utils/utils";
+import { VoucherMemberWithNameAndEmail } from "@/types/voucherMember";
+import { cn, statusString } from "@/utils/utils";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -19,6 +21,7 @@ const Members = () => {
   const [voucherStats, setVoucherStats] = useState<VoucherStats>(defaultVoucherStats());
   const [image, setImage] = useState<File | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(false);
+  const [voucherMembers, setVoucherMembers] = useState<VoucherMemberWithNameAndEmail[]>([]);
   const { data: session, status } = useSession();
   const params = useParams();
 
@@ -33,6 +36,17 @@ const Members = () => {
         start_at: moment(resp.voucher_data.start_at).format("YYYY-MM-DD")
       });
       setVoucherStats(resp.stats);
+    } catch (error) {
+      console.log("error", error);
+    }
+  }
+
+  const getVoucherMember = async () => {
+    try {
+      const token = session?.user?.token as string;
+      const resp = await voucherAPI.getVoucherMemberByVoucherId(token, parseInt(params.id as string));
+      console.log("resp", resp);
+      setVoucherMembers(resp.data);
     } catch (error) {
       console.log("error", error);
     }
@@ -71,6 +85,7 @@ const Members = () => {
 
   useEffect(() => {
     getVoucherDetail();
+    getVoucherMember();
   }, [params.id])
 
   return (
@@ -112,18 +127,20 @@ const Members = () => {
             </div>
           </div>
         </div>
+
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          {/* <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-            <h3 className="font-medium text-black dark:text-white">
-              Voucher Stats
-            </h3>
-          </div> */}
         </div>
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-            <h3 className="font-medium text-black dark:text-white">
+          <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark flex items-center">
+            <h3 className="font-medium text-black dark:text-white mr-3">
               Voucher Detail
             </h3>
+            {/* status badge */}
+            <div className="flex items-center gap-2.5">
+              <div className={cn("bg-primary py-1 px-4 rounded-full", statusString(voucher.start_at, voucher.expired_at) == "Expired" ? "bg-danger" : statusString(voucher.start_at, voucher.expired_at) == "Upcoming" ? "bg-warning" : "bg-success"  )}>
+                <span className="text-white font-medium text-sm">{statusString(voucher.start_at, voucher.expired_at)}</span>
+              </div>
+            </div>
           </div>
           <div>
             <div className="p-6.5 flex">
@@ -268,12 +285,15 @@ const Members = () => {
                       <span>{loading ? "Loading..." : "Save"}</span>
                     </button>
                   </>
-                  
                 )
               }
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <TableVoucherMember voucherMembers={voucherMembers} />
       </div>
     </>
   )

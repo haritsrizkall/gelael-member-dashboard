@@ -24,17 +24,6 @@ export type VoucherDetailResponse = {
   stats: VoucherStats;
 }
 
-export type VoucherMember = {
-  id: number;
-  member_id: number;
-  voucher_id: number;
-  used: boolean;
-  created_at: Date;
-  updated_at: Date;
-  email: string;
-  name: string;
-}
-
 export enum VoucherType {
   UMUM = 'UMUM',
   MEMBER = 'MEMBER'

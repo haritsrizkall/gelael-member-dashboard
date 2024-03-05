@@ -1,7 +1,7 @@
 "use client"
 
 import { Voucher } from "@/types/voucher"
-import { isExpired } from "@/utils/utils"
+import { cn, isExpired, statusString } from "@/utils/utils"
 import moment from "moment"
 import Image from "next/image"
 import Link from "next/link"
@@ -30,6 +30,10 @@ const columns = [
   },
   {
     title: "Status",
+    width: "50px"
+  },
+  {
+    title: "Start At",
     width: "50px"
   },
   {
@@ -101,15 +105,23 @@ const TableVoucher = ({vouchers}: TableVoucherProps) => {
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <div className={cn("bg-primary py-1 px-2 rounded-full text-center", statusString(voucher.start_at, voucher.expired_at) == "Expired" ? "bg-danger" : statusString(voucher.start_at, voucher.expired_at) == "Upcoming" ? "bg-warning" : "bg-success"  )}>
+                <span className="text-white font-medium text-sm">{statusString(voucher.start_at, voucher.expired_at)}</span>
+              </div>
+            </td>
+            
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
                 {moment(voucher.expired_at).format("DD MMM YYYY")}
               </p>
             </td>
+
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
-                {isExpired(voucher.expired_at) ? "Expired" : "Active"}
+                {moment(voucher.start_at).format("DD MMM YYYY")}
               </p>
             </td>
+
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
                 {moment(voucher.created_at).format("DD MMM YYYY")}

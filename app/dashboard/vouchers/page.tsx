@@ -13,7 +13,7 @@ const Vouchers = () => {
   const [vouchers, setVouchers] = useState<Voucher[]>([])
   
   const getVouchers = async () => {
-    const vouchers = await voucherAPI.getVouchers(session?.user?.token as string, 1, 20)
+    const vouchers = await voucherAPI.getVouchers(session?.user?.token as string, 1, 30)
     setVouchers(vouchers)
   }
 
