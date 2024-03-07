@@ -8,4 +8,5 @@ export type Promotion = {
 	created_at: string;
 	updated_at: string;
 	promotion_items?: any[] | null;
+	store_id: number;
 };

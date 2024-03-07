@@ -1,11 +1,13 @@
 "use client"
 import promotionAPI from "@/api/promotion";
+import storeAPI from "@/api/store";
 import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Select from "react-select";
 import { z } from "zod";
 
 const Promotion = () => {
@@ -15,10 +17,35 @@ const Promotion = () => {
   const [imageName, setImageName] = useState<string>("");
   const [color, setColor] = useState("#ffffff");
   const [expiredAt, setExpiredAt] = useState<string>("");
+  const [defaultStoreId, setDefaultStoreId] = useState<number>(0);
+  const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
+  const [selectedStore, setSelectedStores] = useState<{label: string, value: number}>({} as {label: string, value: number});
   const { data: session, status } = useSession();
   const router = useRouter();
 
   const params = useParams();
+
+  const getStores = async () => {
+    const resp = await storeAPI.getStoresList(session?.user?.token as string);
+    let storeOptions = resp.map(store => {
+      if (resp.length > 0 && defaultStoreId == store.store_id) {
+        setDefaultStoreId(store.store_id);
+        console.log("defaultz store id", {label: store.name, value: store.store_id});
+        setSelectedStores({label: store.name, value: store.store_id}); 
+      }
+      return {
+        label: store.name,
+        value: store.store_id
+      }
+    })
+
+    setStoreOptions(storeOptions);
+
+  }
+
+  useEffect(() => {
+    getStores()
+  }, [defaultStoreId]);
 
   useEffect(() => {
     const getPromotion = async () => {
@@ -29,6 +56,7 @@ const Promotion = () => {
         setColor(resp.color);
         setExpiredAt(moment(resp.expired_at).format("YYYY-MM-DD"));
         setImageName(resp.image.split("/").pop() as string);
+        setDefaultStoreId(resp.store_id);
       }
     }
     if (params.id) {
@@ -42,6 +70,7 @@ const Promotion = () => {
     image: z.string(),
     color: z.string(),
     expired_at: z.date(),
+    store_id: z.number()
   })
 
   const handleSubmit = async () => {
@@ -52,6 +81,7 @@ const Promotion = () => {
         image: "",
         color,
         expired_at: new Date(expiredAt),
+        store_id: selectedStore.value
       }
       createPromotionSchema.parse(input)
 
@@ -66,6 +96,7 @@ const Promotion = () => {
           image: imageName,
           color,
           expired_at: new Date(expiredAt),
+          store_id: selectedStore.value
         });
 
         
@@ -81,6 +112,7 @@ const Promotion = () => {
           image: resp.data.filename.split("/").pop() as string,
           color,
           expired_at: new Date(expiredAt),
+          store_id: selectedStore.value
         });
         
         if (respPromotion) {
@@ -141,6 +173,29 @@ const Promotion = () => {
                       placeholder="description"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
+                </div>
+
+                <div className="mb-4.5">
+                  <label className="mb-3 block text-black dark:text-white">
+                    Store 
+                  </label>
+                  <Select
+                    options={storeOptions}
+                    onChange={(data) => {
+                      setSelectedStores((prev) => {
+                        return {
+                          label: data?.label as string,
+                          value: data?.value as number
+                        }
+                      })
+                    }}
+                    defaultValue={storeOptions.find(store => {
+                      console.log("store", store.value);
+                      console.log("default store id", defaultStoreId);
+                      return store.value == defaultStoreId
+                    })}
+                    value={selectedStore}
+                  />
                 </div>
 
                 <div className="mb-4.5">

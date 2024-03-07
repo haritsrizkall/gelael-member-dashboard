@@ -136,6 +136,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 </Link>
               </li>
               {/* <!-- Menu Item Voucher --> */}
+
+              {/* <!-- Menu Item Banner --> */}
+              <li>
+                <Link
+                  href="/dashboard/banners"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    pathname.includes("banners") &&
+                    "bg-graydark dark:bg-meta-4"
+                  }`}
+                >
+                 <MdDiscount className="fill-current" /> 
+                  Banner
+                </Link>
+              </li>
+              {/* <!-- Menu Item Banner --> */}
+
               {/* <!-- Menu Item Member --> */}
               <li>
                 <Link

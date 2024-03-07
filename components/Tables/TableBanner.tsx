@@ -1,12 +1,8 @@
-"use client";
-import { Promotion } from "@/types/promotion";
-import Image from "next/image";
-import moment from "moment";
-import { isExpired } from "@/utils/utils";
-import { FaEdit } from "react-icons/fa";
-import promotionAPI from "@/api/promotion";
+import bannerAPI from "@/api/banner";
+import { Banner } from "@/types/banner";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { FaEdit } from "react-icons/fa";
 
 const columns = [
   {
@@ -14,23 +10,15 @@ const columns = [
     width: "50px"
   },
   {
-    title: "Title",
-    width: "50px"
-  },
-  {
-    title: "Expired At",
-    width: "50px"
-  },
-  {
     title: "Image",
     width: "50px"
   },
   {
-    title: "Color",
+    title: "Created At",
     width: "50px"
   },
   {
-    title: "Status",
+    title: "Updated At",
     width: "50px"
   },
   {
@@ -39,15 +27,15 @@ const columns = [
   }
 ]
 
-interface TablePromotionProps {
-  promotions: Promotion[]
-}  
+interface TableBannerProps {
+  banners: Banner[]
+}
 
-const TablePromotion = ({promotions}: TablePromotionProps) => {
+const TableBanner = ({banners}: TableBannerProps) => {
   const { data: session, status } = useSession()
-  const handleDelete = async (promotionId: number) => {
+  const handleDelete = async (bannerId: number) => {
     try {
-      const resp = await promotionAPI.deletePromotion(session?.user?.token as string, promotionId)
+      const resp = await bannerAPI.delete(session?.user?.token as string, bannerId)
       // refresh page
       location.reload()
     } catch (error) {
@@ -56,63 +44,40 @@ const TablePromotion = ({promotions}: TablePromotionProps) => {
   }
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-    <div className="max-w-full overflow-x-auto">
-      <table className="w-full table-auto">
-        <thead>
-          <tr className="bg-gray-2 text-left dark:bg-meta-4">
-            {columns.map((column, key) => (
-              <th key={key} className={`min-w-[${column.width}] py-4 px-4 font-medium text-black dark:text-white`}>
-                {column.title}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {promotions.map((promotion: Promotion, key) => (
-            <tr key={key}>
-            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
-              <p className="text-black dark:text-white">
-                {key + 1}
-              </p>
-            </td>
-            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-              <p className="text-black dark:text-white">
-                {promotion.title}
-              </p>
-            </td>
-            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-              <p className="text-black dark:text-white">
-                {moment(promotion.expired_at).format("DD MMM YYYY")}
-              </p>
-            </td>
-            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-              <p className="text-black dark:text-white">
-                <div className="h-12.5 w-15 rounded-md">
-                  <Image
-                    src={promotion.image}
-                    loader={() => promotion.image}
-                    width={60}
-                    height={50}
-                    alt="Product"
-                  />
-                </div>
-              </p>
-            </td>
-            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-              <div 
-                className="w-4.5 h-3 border border-stroke border-1"
-                style={{backgroundColor: promotion.color}}
-              >
-              </div>
-            </td>
-            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-              <p className="text-black dark:text-white">
-                {isExpired(promotion.expired_at) ? "Expired" : "Active"}
-              </p>
-            </td>
-            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+      <div className="max-w-full overflow-x-auto">
+        <table className="w-full table-auto">
+          <thead>
+            <tr className="bg-gray-2 text-left dark:bg-meta-4">
+              {columns.map((column, key) => (
+                <th key={key} className={`min-w-[${column.width}] py-4 px-4 font-medium text-black dark:text-white`}>
+                  {column.title}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {banners.map((banner: Banner, key) => (
+              <tr key={key}>
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
+                  <p className="text-black dark:text-white">
+                    {key + 1}
+                  </p>
+                </td>
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                  <img src={banner.image} alt="banner" className="w-20 h-20" />
+                </td>
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                  <p className="text-black dark:text-white">
+                    {banner.created_at}
+                  </p>
+                </td>
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                  <p className="text-black dark:text-white">
+                    {banner.updated_at}
+                  </p>
+                </td><td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
-                    <button className="hover:text-primary" onClick={() => handleDelete(promotion.id)}>
+                    <button className="hover:text-primary" onClick={() => handleDelete(banner.banner_id)}>
                       <svg
                         className="fill-current"
                         width="18"
@@ -140,19 +105,19 @@ const TablePromotion = ({promotions}: TablePromotionProps) => {
                       </svg>
                     </button>
                     <button>
-                      <Link href={`/dashboard/promotions/${promotion.id}`}>
+                      <Link href={`/dashboard/banners/${banner.banner_id}`}>
                         <FaEdit className="text-primary" />
                       </Link>
                     </button>
                   </div>
                 </td>
               </tr>
-          ))}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
-    </div>
-  );
+  )
 }
 
-export default TablePromotion;
+export default TableBanner

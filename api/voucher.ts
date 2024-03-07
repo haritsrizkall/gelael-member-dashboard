@@ -17,7 +17,7 @@ interface VoucherAPI {
 }
 
 export type InputCreateVoucher = {
-  title: string;
+title: string;
   description: string;
   type: string;
   amount: number;

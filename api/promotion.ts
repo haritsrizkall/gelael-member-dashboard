@@ -17,6 +17,7 @@ export type InputCreatePromotion = {
   image: string;
   color: string;
   expired_at: Date;
+  store_id: number;
 }
 
 export type InputUpdatePromotion = {
@@ -26,6 +27,7 @@ export type InputUpdatePromotion = {
   image: string;
   color: string;
   expired_at: Date;
+  store_id: number;
 }
 
 const promotionAPI: PromotionAPI = {

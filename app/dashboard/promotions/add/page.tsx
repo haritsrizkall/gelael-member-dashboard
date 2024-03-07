@@ -1,10 +1,13 @@
 "use client";
 
 import promotionAPI from "@/api/promotion";
+import storeAPI from "@/api/store";
 import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { StoreList } from "@/types/store";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Select from "react-select";
 import { z } from "zod";
 
 const AddPromotion = () => {
@@ -13,6 +16,8 @@ const AddPromotion = () => {
   const [image, setImage] = useState<File | undefined>(undefined);
   const [color, setColor] = useState("#ffffff");
   const [expiredAt, setExpiredAt] = useState("");
+  const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
+  const [selectedStore, setSelectedStores] = useState<{label: string, value: number}>({} as {label: string, value: number});
   const { data: session, status } = useSession() 
 
   const createPromotionSchema = z.object({
@@ -21,7 +26,24 @@ const AddPromotion = () => {
     image: z.string(),
     color: z.string(),
     expired_at: z.date(),
+    store_id: z.number()
   })
+
+  const getStores = async () => {
+    const resp = await storeAPI.getStoresList(session?.user?.token as string);
+    let storeOptions = resp.map(store => {
+      return {
+        label: store.name,
+        value: store.store_id
+      }
+    })
+
+    setStoreOptions(storeOptions);
+  }
+
+  useEffect(() => {
+    getStores()
+  }, []);
 
   const handleSubmit = async () => {
     // Add Promotion
@@ -32,6 +54,7 @@ const AddPromotion = () => {
         image: "",
         color,
         expired_at: new Date(expiredAt),
+        store_id: selectedStore.value
       }
       createPromotionSchema.parse(input)
       
@@ -44,6 +67,7 @@ const AddPromotion = () => {
         image: resp.data.filename.split("/").pop() as string,
         color,
         expired_at: new Date(expiredAt),
+        store_id: selectedStore.value
       });
   
       if (respPromotion) {
@@ -102,6 +126,18 @@ const AddPromotion = () => {
                       placeholder="description"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
+                </div>
+
+                <div className="mb-4.5">
+                  <label className="mb-3 block text-black dark:text-white">
+                    Store 
+                  </label>
+                  <Select
+                    options={storeOptions}
+                    onChange={(data) => {
+                      setSelectedStores(data as {label: string, value: number})
+                    }}
+                  />
                 </div>
 
                 <div className="mb-4.5">
