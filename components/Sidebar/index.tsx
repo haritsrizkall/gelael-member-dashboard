@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import SidebarLinkGroup from "./SidebarLinkGroup";
-import Image from "next/image";
-import { FaSignOutAlt } from "react-icons/fa";
+import { FaImage, FaInstagram, FaSignOutAlt } from "react-icons/fa";
 import { signOut } from "next-auth/react";
 import { MdDiscount } from "react-icons/md";
 import { CiDiscount1 } from "react-icons/ci";
 import { FaUsers } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
+import { IoSettings } from "react-icons/io5";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -146,7 +145,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     "bg-graydark dark:bg-meta-4"
                   }`}
                 >
-                 <MdDiscount className="fill-current" /> 
+                 <FaImage className="fill-current" /> 
                   Banner
                 </Link>
               </li>
@@ -194,7 +193,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   Notifications
                 </Link>
               </li>
-              {/* <!-- Menu Item User --> */}
+              {/* <!-- Menu Item Notification --> */}
+
+              {/* <!-- Menu Item Social Media --> */}
+              <li>
+                <Link
+                  href="/dashboard/configurations"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    pathname.includes("configurations") &&
+                    "bg-graydark dark:bg-meta-4"
+                  }`}
+                >
+                  <IoSettings className="fill-current"/>
+                  Configuration
+                </Link>
+              </li>
+              {/* <!-- Menu Item Notification --> */}
+
               {/* <!-- Menu Item Chart --> */}
               <li>
                 <div

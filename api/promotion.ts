@@ -1,10 +1,11 @@
-import { Promotion } from "@/types/promotion";
+import { Promotion, PromotionWithStoreName } from "@/types/promotion";
 import { DeleteResponse } from "@/types/response";
 import { getApiUrl } from "@/utils/utils";
 import axios from "axios";
 
 interface PromotionAPI {
   getPromotions: (token: string) => Promise<Promotion[]>;
+  getPromotionsWithStoreName: (token: string) => Promise<PromotionWithStoreName[]>;
   getById: (token: string, id: number) => Promise<Promotion>;
   createPromotion: (token: string, input: InputCreatePromotion) => Promise<Promotion>;
   deletePromotion: (token: string, id: number) => Promise<DeleteResponse>;
@@ -39,6 +40,14 @@ const promotionAPI: PromotionAPI = {
       }
     })
     return resp.data.data as Promotion[]
+  },
+  getPromotionsWithStoreName: async (token: string) => {
+    const resp = await axios.get(`${getApiUrl()}/promotions/with-store-name`, {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    })
+    return resp.data.data as PromotionWithStoreName[]
   },
   getById: async (token: string, id: number) => {
     const resp = await axios.get(`${getApiUrl()}/promotions/${id}`, {

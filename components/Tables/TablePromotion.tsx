@@ -1,5 +1,5 @@
 "use client";
-import { Promotion } from "@/types/promotion";
+import { PromotionWithStoreName } from "@/types/promotion";
 import Image from "next/image";
 import moment from "moment";
 import { isExpired } from "@/utils/utils";
@@ -15,6 +15,10 @@ const columns = [
   },
   {
     title: "Title",
+    width: "50px"
+  },
+  {
+    title: "Store",
     width: "50px"
   },
   {
@@ -34,13 +38,17 @@ const columns = [
     width: "50px"
   },
   {
+    title: "Created At",
+    width: "50px"
+  },
+  {
     title: "Action",
     width: "50px"
   }
 ]
 
 interface TablePromotionProps {
-  promotions: Promotion[]
+promotions: PromotionWithStoreName[]
 }  
 
 const TablePromotion = ({promotions}: TablePromotionProps) => {
@@ -68,7 +76,7 @@ const TablePromotion = ({promotions}: TablePromotionProps) => {
           </tr>
         </thead>
         <tbody>
-          {promotions.map((promotion: Promotion, key) => (
+          {promotions.map((promotion: PromotionWithStoreName, key) => (
             <tr key={key}>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
               <p className="text-black dark:text-white">
@@ -78,6 +86,11 @@ const TablePromotion = ({promotions}: TablePromotionProps) => {
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
                 {promotion.title}
+              </p>
+            </td>
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <p className="text-black dark:text-white">
+                {promotion.store_name}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
@@ -108,6 +121,11 @@ const TablePromotion = ({promotions}: TablePromotionProps) => {
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
                 {isExpired(promotion.expired_at) ? "Expired" : "Active"}
+              </p>
+            </td>
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <p className="text-black dark:text-white">
+                {moment(promotion.created_at).format("DD MMM YYYY")}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

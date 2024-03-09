@@ -4,15 +4,16 @@ import TablePromotion from "@/components/Tables/TablePromotion";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { Promotion } from "@/types/promotion";
+import { PromotionWithStoreName } from "@/types/promotion";
 
 
 const Promotion = () => {
   const { data: session, status } = useSession()
-  const [promotions, setPromotions] = useState<Promotion[]>([])
+  const [promotions, setPromotions] = useState<PromotionWithStoreName[]>([])
 
   const getPromotions = async () => {
-    const resp = await promotionAPI.getPromotions(session?.user?.token as string)
+    const resp = await promotionAPI.getPromotionsWithStoreName(session?.user?.token as string)
+    console.log("PROMOTIONS", resp)
     setPromotions(resp)
   }
 
