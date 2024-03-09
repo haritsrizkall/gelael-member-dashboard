@@ -50,7 +50,7 @@ const promotionAPI: PromotionAPI = {
     return resp.data.data as PromotionWithStoreName[]
   },
   getById: async (token: string, id: number) => {
-    const resp = await axios.get(`${getApiUrl()}/promotions/${id}`, {
+    const resp = await axios.get(`${getApiUrl()}/promotions/${id}?with_item=true`, {
       headers: {
         Authorization: "Bearer " + token
       }

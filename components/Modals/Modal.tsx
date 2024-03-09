@@ -1,3 +1,4 @@
+import { generateMaxWidth } from "@/utils/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
@@ -36,6 +37,7 @@ const Modal = ({
     hidden: { y: "-100vh", opacity: 0 },
     visible: { y: "0", opacity: 1 },
   };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -45,7 +47,7 @@ const Modal = ({
           animate="visible"
           exit="hidden"
           onClick={onClose}
-          className="fixed z-50 inset-0 w-full h-full bg-[rgba(0,0,0,.2)] text-black"
+          className="fixed z-50 inset-0 h-full bg-[rgba(0,0,0,.2)] text-black"
         >
           <motion.div
             variants={modalVariants}
@@ -53,7 +55,7 @@ const Modal = ({
             animate="visible"
             exit="hidden"
             onClick={(e) => e.stopPropagation()}
-            className={`bg-white border-t-[4px] border-indigo-700 px-5 pt-10 pb-10 w-11/12 max-w-${size} mx-auto mt-[10vh] relative max-h-[80vh] ${
+            className={`bg-white border-t-[4px] border-indigo-700 px-5 pt-10 pb-10 w-11/12 max-w-xl mx-auto mt-[10vh] relative max-h-[80vh] ${
               !loading ? "overflow-y-auto" : "overflow-y-hidden"
             } scrollbar`}
           >

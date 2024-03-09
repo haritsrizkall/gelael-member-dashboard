@@ -3,6 +3,10 @@ import promotionAPI from "@/api/promotion";
 import storeAPI from "@/api/store";
 import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import Button from "@/components/Button";
+import AddPromotionItemModal from "@/components/Modals/AddPromotionItemModal";
+import TablePromotionItem from "@/components/Tables/TablePromotionItem";
+import { PromotionItem } from "@/types/promotionItem";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
@@ -20,6 +24,9 @@ const Promotion = () => {
   const [defaultStoreId, setDefaultStoreId] = useState<number>(0);
   const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
   const [selectedStore, setSelectedStores] = useState<{label: string, value: number}>({} as {label: string, value: number});
+  const [promotionItems, setPromotionItems] = useState<PromotionItem[]>([]);
+  const [addPromotionItem, setAddPromotionItem] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -57,6 +64,8 @@ const Promotion = () => {
         setExpiredAt(moment(resp.expired_at).format("YYYY-MM-DD"));
         setImageName(resp.image.split("/").pop() as string);
         setDefaultStoreId(resp.store_id);
+        setPromotionItems(resp.promotion_item as PromotionItem[]);
+        console.log("promotion items", resp.promotion_item);
       }
     }
     if (params.id) {
@@ -75,6 +84,7 @@ const Promotion = () => {
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
       const input = {
         title,
         description,
@@ -86,8 +96,7 @@ const Promotion = () => {
       createPromotionSchema.parse(input)
 
       const token = session?.user?.token as string;
-      // const resp = await uploadAPI.upload(token, { file: image as File });
-  
+
       if (image == undefined) {
         const respPromotion = await promotionAPI.updatePromotion(token, {
           id: parseInt(params.id as string),
@@ -119,30 +128,27 @@ const Promotion = () => {
           alert("Promotion update successfully");
         }
       }      
-      setTitle("");
-      setDescription("");
-      setImage(undefined);
-      setColor("");
-      setExpiredAt("");
-
-      router.push("/dashboard/promotions");
     }catch (error) {
       console.log(error);
       alert("Failed to add promotion");
+    }finally {
+      setLoading(false);
     }
   }
 
   return  (
     <>
+      <AddPromotionItemModal isOpen={addPromotionItem} setPromotionItems={setPromotionItems} onClose={() => setAddPromotionItem(false)} promotionId={parseInt(params.id as string)} />
       <Breadcrumb 
         pageName="Edit Promotion" 
         parent={{name: "Promotions", link: "/dashboard/promotions"}}/>
-      <div className="flex flex-col gap-9">
-          {/* <!-- Contact Form --> */}
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="">
+          {/* <!-- Edit Form --> */}
+          <h2 className="text-title-md3 font-semibold text-black dark:text-white mb-5">Edit Promotion</h2>
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark mb-10">
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
-                Add Promotions
+                Edit Promotions
               </h3>
             </div>
             <div>
@@ -236,17 +242,27 @@ const Promotion = () => {
                     />
                   </div>
                 </div>
-
-                <button
+                <Button
+                  text="Edit Promotion"
                   onClick={handleSubmit}
-                  className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray"
-                >
-                  Edit Promotion
-                </button>
+                  isLoading={loading}
+                />
               </div>
             </div>
           </div>
-        </div>
+
+          {/* <!-- Contact Form --> */}
+          <h2 className="text-title-md3 font-semibold text-black dark:text-white mb-5">Promotion Item</h2>
+          <button
+            className="flex justify-center rounded bg-primary py-3 px-5 mb-5 font-medium text-gray"
+            onClick={() => setAddPromotionItem(true)}
+          >
+              Add promotion item
+          </button>
+          <div>
+            <TablePromotionItem promotionItems={promotionItems} setPromotionItems={setPromotionItems}/>
+          </div>
+      </div>
     </>
   )
 }

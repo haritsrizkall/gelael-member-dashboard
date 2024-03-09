@@ -23,3 +23,7 @@ export function statusString(start_at: string, expired_at: string) {
 export function getApiUrl() {
   return process.env.DEV_API_URL != undefined ? process.env.DEV_API_URL : process.env.NEXT_PUBLIC_DEV_API_URL;
 }
+
+export function generateMaxWidth(size: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl") {
+  return `max-w-${size}`
+}
