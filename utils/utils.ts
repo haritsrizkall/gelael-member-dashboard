@@ -1,3 +1,4 @@
+import { Role } from '@/types/role';
 import clsx, { ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
  
@@ -26,4 +27,8 @@ export function getApiUrl() {
 
 export function generateMaxWidth(size: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl") {
   return `max-w-${size}`
+}
+
+export function rolesToString(roles: Role[]) {
+  return roles.map((role) => role.name).join(", ");
 }

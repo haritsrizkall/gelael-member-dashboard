@@ -33,8 +33,8 @@ export const authOptions: AuthOptions = {
 
           const me = await userAPI.me(user.token)
           
-          user.name = me?.data?.data.name
-          user.email = me?.data?.data.email
+          user.name = me?.name
+          user.email = me?.email
           
           if (user) {
             // Any object returned will be saved in `user` property of the JWT

@@ -14,7 +14,7 @@ interface AuthAPI {
 const authAPI: AuthAPI = {
   login: async (input: LoginInput) => {
     const resp = await axios.post(`${getApiUrl()}/auth/login`, input)
-
+    console.log(resp)
     return resp
   } 
 }

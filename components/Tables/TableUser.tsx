@@ -1,5 +1,8 @@
-import { User } from "@/types/user";
+import AddUserModal from "@/api/AddUserModal";
+import { User, UserWithRoles } from "@/types/user";
+import { rolesToString } from "@/utils/utils";
 import moment from "moment";
+import { useState } from "react";
 
 const columns = [
   {
@@ -15,17 +18,20 @@ const columns = [
     width: "50px"
   },
   {
+    title: "Roles",
+    width: "50px"
+  },
+  {
     title: "Created At",
     width: "50px"
   }
 ]
 
 interface TableUserProps {
-  users: User[]
+  users: UserWithRoles[]
 }
 
 const TableUser = ({users}: TableUserProps) => {
-  
   return (
     <>
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
@@ -56,6 +62,11 @@ const TableUser = ({users}: TableUserProps) => {
               <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                 <p className="text-black dark:text-white">
                   {user.name || "-"}
+                </p>
+              </td>
+              <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                <p className="text-black dark:text-white">
+                  {rolesToString(user.roles)}
                 </p>
               </td>
               <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

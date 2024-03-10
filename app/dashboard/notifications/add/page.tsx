@@ -4,14 +4,12 @@ import notificationAPI from "@/api/notification";
 import storeAPI from "@/api/store";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { InputCreateNotification, NotificationSenderType, NotificationType } from "@/types/notification";
-import { StoreList } from "@/types/store";
 import { useSession } from "next-auth/react";
 import { use, useEffect, useState } from "react";
 import { z } from "zod";
 import Select from "react-select";
 import AsyncSelect from 'react-select/async';
 import memberAPI from "@/api/member";
-import { MemberList } from "@/types/member";
 
 const AddNotification = () => {
   const [title, setTitle] = useState("");

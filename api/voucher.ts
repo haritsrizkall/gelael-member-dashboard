@@ -17,13 +17,14 @@ interface VoucherAPI {
 }
 
 export type InputCreateVoucher = {
-title: string;
+  title: string;
   description: string;
   type: string;
   amount: number;
   image: string;
   expired_at: Date;
   start_at: Date;
+  count: number;
 }
 
 export type InputUpdateVoucher = {
