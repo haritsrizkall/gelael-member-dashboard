@@ -10,16 +10,28 @@ import { PromotionWithStoreName } from "@/types/promotion";
 const Promotion = () => {
   const { data: session, status } = useSession()
   const [promotions, setPromotions] = useState<PromotionWithStoreName[]>([])
+  const [metaData, setMetaData] = useState({
+    current_page: 1,
+    page_size: 15,
+    total: 0,
+    total_page: 0
+  })
+  const [query, setQuery] = useState("")
 
-  const getPromotions = async () => {
-    const resp = await promotionAPI.getPromotionsWithStoreName(session?.user?.token as string)
+  const getPromotions = async (q?: string) => {
+    const resp = await promotionAPI.getPromotionsWithStoreName(session?.user?.token as string, {
+      page: metaData.current_page,
+      page_size: metaData.page_size,
+      q: q
+    })
     console.log("PROMOTIONS", resp)
-    setPromotions(resp)
+    setPromotions(resp.data)
+    setMetaData(resp.meta)
   }
 
   useEffect(() => {
     getPromotions()
-  }, [])
+  }, [metaData.current_page])
   
   return (
     <>
@@ -29,7 +41,28 @@ const Promotion = () => {
             Add promotion
         </button>
       </Link>
-      <TablePromotion promotions={promotions} />
+      <TablePromotion 
+        promotions={promotions}
+        setQuery={setQuery}
+        query={query}
+        meta={metaData}
+        nextFn={() => {
+          if (metaData.current_page < metaData.total_page) {
+            setMetaData({
+              ...metaData,
+              current_page: metaData.current_page + 1
+            })
+          }
+        }}
+        prevFn={() => {
+          if (metaData.current_page > 1) {
+            setMetaData({
+              ...metaData,
+              current_page: metaData.current_page - 1
+            })
+          }
+        }}
+      />
     </>
   )
 }

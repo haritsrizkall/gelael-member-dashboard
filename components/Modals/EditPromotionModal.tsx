@@ -7,18 +7,20 @@ import promotionItemAPI from "@/api/promotionItem";
 import { useSession } from "next-auth/react";
 import { Promotion } from "@/types/promotion";
 import { PromotionItem } from "@/types/promotionItem";
+import uploadAPI from "@/api/upload";
 
 interface EditPromotionItemModalProps extends ModalProps {
   setPromotionItems: (promotionItems: any) => void;
   promotionItem: PromotionItem;
   promotionItems: PromotionItem[];
-}1
+}
 
 const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [discount, setDiscount] = useState("");
   const [image, setImage] = useState<File | undefined>(undefined);
+  const [defaultImage, setDefaultImage] = useState<string>("" as string);
   const [loading , setLoading] = useState(false);
   const { data: session} = useSession();
 
@@ -26,6 +28,7 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
     setProductName(props.promotionItem.product_name)
     setProductPrice(props.promotionItem.price.toString())
     setDiscount(props.promotionItem.discount.toString())
+    setDefaultImage(props.promotionItem.image ? props.promotionItem.image : "" as string)
   },[props.promotionItem.promotion_item_id])
   
   const handleSubmit = async () => {
@@ -35,11 +38,19 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
         product_name: productName,
         price: parseInt(productPrice),
         discount: parseInt(discount),
-        id: props.promotionItem.promotion_item_id
+        id: props.promotionItem.promotion_item_id,
+        image: defaultImage .split("/").pop() as string
       }
-      console.log(newPromotionItem)
       const token = session?.user?.token as string
+
+      if (image) {
+        const respImage = await uploadAPI.upload(token, {file: image as File})
+        newPromotionItem.image = respImage.data.filename.split("/").pop() as string
+      }
+
       const promotionItem = await promotionItemAPI.updatePromotionItem(token, newPromotionItem)
+
+      console.log("resp ", promotionItem)
       // update promotion items
       const newPromotionItems = props.promotionItems.map((item: PromotionItem) => {
         if (item.promotion_item_id === newPromotionItem.id) {

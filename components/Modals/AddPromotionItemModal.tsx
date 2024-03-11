@@ -5,6 +5,7 @@ import Modal, { ModalProps } from "./Modal";
 import Button from "../Button";
 import promotionItemAPI from "@/api/promotionItem";
 import { useSession } from "next-auth/react";
+import uploadAPI from "@/api/upload";
 
 interface AddPromotionItemModalProps extends ModalProps {
   setPromotionItems: (promotionItems: any) => void;
@@ -26,17 +27,27 @@ const AddPromotionItemModal = (props: AddPromotionItemModalProps) => {
         product_name: productName,
         price: parseInt(productPrice),
         discount: parseInt(discount),
-        promotion_id: props.promotionId
+        promotion_id: props.promotionId,
+        image: ""
       }
+
       const token = session?.user?.token as string
+      const resp = await uploadAPI.upload(token, {file: image as File})
+
+      newPromotionItem.image = resp.data.filename.split("/").pop() as string
+
       const promotionItem = await promotionItemAPI.createPromotionItem(token, newPromotionItem)
+
       props.setPromotionItems((prev: any) => {
         if (prev) {
+          console.log("prev ", prev)
+          console.log("promotionItem ", promotionItem)
           return [...prev, promotionItem]
         }else {
           return [promotionItem]
         }
       })
+      
       props.onClose()
       alert("Promotion Item added successfully")
     }catch (error) {

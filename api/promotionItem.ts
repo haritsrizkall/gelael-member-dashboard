@@ -1,3 +1,4 @@
+import { Meta } from "@/types/meta";
 import { PromotionItem } from "@/types/promotionItem";
 import { DeleteResponse } from "@/types/response";
 import { getApiUrl } from "@/utils/utils";
@@ -5,9 +6,22 @@ import axios from "axios";
 
 
 interface PromotionItemAPI {
+  getPromotionItemsByPromotionID: (token: string, params: getPromotionItemsParams) => Promise<PromotionItemsPaginationParams>; 
   deletePromotionItem: (token: string, id: number) => Promise<DeleteResponse>;
   createPromotionItem: (token: string, input: InputCreatePromotionItem) => Promise<PromotionItem>;
   updatePromotionItem: (token: string, input: InputUpdatePromotionItem) => Promise<PromotionItem>;
+}
+
+type getPromotionItemsParams = {
+  page?: number;
+  q?: string;
+  page_size?: number;
+  promotion_id?: number;
+}
+
+type PromotionItemsPaginationParams = {
+  data: PromotionItem[];
+  meta: Meta;
 }
 
 export type InputCreatePromotionItem = {
@@ -15,6 +29,7 @@ export type InputCreatePromotionItem = {
   product_name: string;
   price: number;
   discount: number;
+  image: string;
 }
 
 export type InputUpdatePromotionItem = {
@@ -25,6 +40,20 @@ export type InputUpdatePromotionItem = {
 }
 
 const promotionItemAPI: PromotionItemAPI = {
+  getPromotionItemsByPromotionID: async (token: string, params: getPromotionItemsParams) => {
+    let url = new URL(`${getApiUrl()}/promotions/${params.promotion_id}/promotion-items`)
+    if (params.page) url.searchParams.append('page', params.page.toString())
+    if (params.q) url.searchParams.append('q', params.q)
+    if (params.page_size) url.searchParams.append('page_size', params.page_size.toString())
+
+    const resp = await axios.get(url.toString(), {
+      headers: {
+        Authorization: "Bearer " + token
+      },
+      params: params
+    })
+    return resp.data as PromotionItemsPaginationParams
+  },
   deletePromotionItem: async (token: string, id: number) => {
     const resp = await axios.delete(`${getApiUrl()}/promotion-items/${id}`, {
       headers: {

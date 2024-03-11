@@ -27,6 +27,7 @@ const Promotion = () => {
   const [promotionItems, setPromotionItems] = useState<PromotionItem[]>([]);
   const [addPromotionItem, setAddPromotionItem] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [promotionId, setPromotionId] = useState<number>(0);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -56,6 +57,7 @@ const Promotion = () => {
 
   useEffect(() => {
     const getPromotion = async () => {
+      setPromotionId(parseInt(params.id as string));
       const resp = await promotionAPI.getById(session?.user?.token as string, parseInt(params.id as string));
       if (resp) {
         setTitle(resp.title);
@@ -65,7 +67,7 @@ const Promotion = () => {
         setImageName(resp.image.split("/").pop() as string);
         setDefaultStoreId(resp.store_id);
         setPromotionItems(resp.promotion_item as PromotionItem[]);
-        console.log("promotion items", resp.promotion_item);
+        setPromotionId(resp.id);
       }
     }
     if (params.id) {
@@ -260,7 +262,7 @@ const Promotion = () => {
               Add promotion item
           </button>
           <div>
-            <TablePromotionItem promotionItems={promotionItems} setPromotionItems={setPromotionItems}/>
+            <TablePromotionItem promotionID={promotionId}/>
           </div>
       </div>
     </>

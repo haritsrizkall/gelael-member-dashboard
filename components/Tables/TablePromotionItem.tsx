@@ -3,10 +3,13 @@
 import promotionItemAPI from "@/api/promotionItem"
 import { PromotionItem } from "@/types/promotionItem"
 import { useSession } from "next-auth/react"
-import Link from "next/link"
 import { FaEdit } from "react-icons/fa"
 import EditPromotionItemModal from "../Modals/EditPromotionModal"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import Pagination from "../Pagination"
+import { debounce } from "lodash"
+import Image from "next/image"
+import { Promotion } from "@/types/promotion"
 
 const columns = [
   {
@@ -15,6 +18,10 @@ const columns = [
   },
   {
     title: "Product Name",
+    width: "50px"
+  },
+  {
+    title: "Image",
     width: "50px"
   },
   {
@@ -32,11 +39,10 @@ const columns = [
 ]
 
 interface TablePromotionItemProps {
-  promotionItems: any[]
-  setPromotionItems: (promotionItems: PromotionItem[]) => void
+  promotionID: number
 }
 
-const TablePromotionItem = ({promotionItems, setPromotionItems}: TablePromotionItemProps) => {
+const TablePromotionItem = ({promotionID}: TablePromotionItemProps) => {
   const [promotion, setPromotion] = useState<PromotionItem>({
     promotion_item_id: 0,
     product_name: "",
@@ -44,10 +50,19 @@ const TablePromotionItem = ({promotionItems, setPromotionItems}: TablePromotionI
     discount: 0,
     promotion_id: 0,
     created_at: "",
-    updated_at: ""
+    updated_at: "",
+    image: ""
   })
   const [editMode, setEditMode] = useState(false)
-
+  const [metaData, setMetaData] = useState({
+    current_page: 1,
+    page_size: 15,
+    total: 0,
+    total_page: 0
+  })
+  const [query, setQuery] = useState("")
+  const [promotionItems, setPromotionItems] = useState<PromotionItem[]>([])
+  const [promotionId, setPromotionId] = useState<number>(0)
   const { data: session, status } = useSession()
   
   const handleDelete = async (id: number) => {
@@ -67,6 +82,45 @@ const TablePromotionItem = ({promotionItems, setPromotionItems}: TablePromotionI
     }
   }
 
+  const getData = async (q?: string) => {
+    try {
+      console.log("promotion id", promotionId)
+      const token = session?.user?.token as string
+      const resp = await promotionItemAPI.getPromotionItemsByPromotionID(token, {
+        promotion_id: promotionID,
+        page: metaData.current_page,
+        page_size: metaData.page_size,
+        q: q
+      })
+      setPromotionItems(resp.data)
+      setMetaData(resp.meta)
+      console.log("promotion items", promotionItems)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    getData()
+    setPromotionId(promotionID)
+  }, [promotionID, metaData.current_page])
+
+
+  const debouncedSearch = useRef(
+    debounce(async (query:string) => {
+      await getData(query)
+    }, 500)
+  ).current
+
+  const setQueryDebounced = async (value: string) => {
+    setQuery(value)
+    debouncedSearch(value)
+  }
+  
+  useEffect(() => {
+    debouncedSearch.cancel()
+  }, [debouncedSearch]);
+
   return (
     <>
     <EditPromotionItemModal 
@@ -77,6 +131,19 @@ const TablePromotionItem = ({promotionItems, setPromotionItems}: TablePromotionI
       onClose={() => setEditMode(false)}
     />
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+      {/* Search bar */}
+      {/* <div className="flex justify-between items-center mb-4">
+        <div className="w-full flex items-center">
+          <input
+            type="text"
+            placeholder="Search"
+            value={query}
+            onChange={(e) => setQueryDebounced(e.target.value)}
+            className="w-1/2 rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+          />
+        </div>
+      </div> */}
+      {/* Search bar */}
       <div className="max-w-full overflow-x-auto">
         <table className="w-full table-auto">
           <thead>
@@ -93,12 +160,29 @@ const TablePromotionItem = ({promotionItems, setPromotionItems}: TablePromotionI
                 <tr key={key}>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
                     <p className="text-black dark:text-white">
-                      {key + 1}
+                      {key + 1 + (metaData.current_page - 1) * metaData.page_size}
                     </p>
                   </td>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                     <p className="text-black dark:text-white">
                       {item.product_name}
+                    </p>
+                  </td>
+                  <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                    <p className="text-black dark:text-white">
+                      {
+                        item.image != null && (
+                          <div className="h-12.5 w-15 rounded-md flex item-center">
+                            <Image
+                              src={item.image}
+                              loader={() => item.image}
+                              width={60}
+                              height={50}
+                              alt="Product"
+                            />
+                          </div>
+                        )
+                      }
                     </p>
                   </td>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
@@ -153,6 +237,29 @@ const TablePromotionItem = ({promotionItems, setPromotionItems}: TablePromotionI
           </tbody>
         </table>
       </div>
+      <div className="my-4 flex flex-col items-end">
+      <Pagination
+        currentPage={metaData.current_page}
+        totalData={metaData.total}
+        pageSize={metaData.page_size}
+        nextFn={() => {
+          if (metaData.current_page < metaData.total_page) {
+            setMetaData({
+              ...metaData,
+              current_page: metaData.current_page + 1
+            })
+          }
+        }}
+        prevFn={() => {
+          if (metaData.current_page > 1) {
+            setMetaData({
+              ...metaData,
+              current_page: metaData.current_page - 1
+            })
+          }
+        }}
+      />
+    </div>
     </div>
     </>
   )

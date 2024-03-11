@@ -8,6 +8,8 @@ import promotionAPI from "@/api/promotion";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import EditPromotionItemModal from "../Modals/EditPromotionModal";
+import { Meta } from "@/types/meta";
+import Pagination from "../Pagination";
 
 const columns = [
   {
@@ -50,9 +52,14 @@ const columns = [
 
 interface TablePromotionProps {
   promotions: PromotionWithStoreName[]
+  meta: Meta
+  nextFn: () => void
+  prevFn: () => void
+  query: string
+  setQuery: (query: string) => void
 }  
 
-const TablePromotion = ({promotions}: TablePromotionProps) => {
+const TablePromotion = ({promotions, meta, nextFn, prevFn, query, setQuery}: TablePromotionProps) => {
   const { data: session, status } = useSession()
   const handleDelete = async (promotionId: number) => {
     try {
@@ -82,7 +89,7 @@ const TablePromotion = ({promotions}: TablePromotionProps) => {
             <tr key={key}>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
               <p className="text-black dark:text-white">
-                {key + 1}
+                {key + 1 + (meta.current_page - 1) * meta.page_size}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
@@ -170,6 +177,15 @@ const TablePromotion = ({promotions}: TablePromotionProps) => {
           ))}
         </tbody>
       </table>
+    </div>
+    <div className="my-4 flex flex-col items-end">
+      <Pagination
+        currentPage={meta.current_page}
+        totalData={meta.total}
+        pageSize={meta.page_size}
+        nextFn={nextFn}
+        prevFn={prevFn}
+      />
     </div>
     </div>
     </>
