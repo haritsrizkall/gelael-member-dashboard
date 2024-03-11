@@ -52,11 +52,6 @@ const TableUser = ({users, meta, nextFn, prevFn, query, setQuery}: TableUserProp
           onChange={(e) => setQuery(e.target.value)}
           className="w-1/2 rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
         />
-        <button 
-          className="flex items-center justify-center rounded-md bg-primary py-3 px-5 ml-3 font-medium text-white"
-        >
-          Search
-        </button>
       </div>
       </div>
     {/* Search bar */}

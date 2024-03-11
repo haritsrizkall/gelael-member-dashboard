@@ -6,6 +6,8 @@ import moment from "moment"
 import Image from "next/image"
 import Link from "next/link"
 import { FaEdit } from "react-icons/fa"
+import Pagination from "../Pagination"
+import { Meta } from "@/types/meta"
 
 const columns = [
   {
@@ -52,11 +54,29 @@ const columns = [
 
 interface TableVoucherProps {
   vouchers: Voucher[]
+  meta: Meta
+  nextFn: () => void
+  prevFn: () => void
+  query: string
+  setQuery: (query: string) => void
 }
 
-const TableVoucher = ({vouchers}: TableVoucherProps) => {
+const TableVoucher = ({vouchers, meta, nextFn, prevFn, query, setQuery}: TableVoucherProps) => {
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+    {/* Search bar */}
+    <div className="flex justify-between items-center mb-4">
+      <div className="w-full flex items-center">
+        <input
+          type="text"
+          placeholder="Search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-1/2 rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+        />
+      </div>
+      </div>
+    {/* Search bar */}
     <div className="max-w-full overflow-x-auto">
       <table className="w-full table-auto">
         <thead>
@@ -69,11 +89,11 @@ const TableVoucher = ({vouchers}: TableVoucherProps) => {
           </tr>
         </thead>
         <tbody>
-          {vouchers.map((voucher: Voucher, key) => (
+          {vouchers && vouchers.map((voucher: Voucher, key) => (
             <tr key={key}>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
               <p className="text-black dark:text-white">
-                {key + 1}
+                {key + 1 + (meta.current_page - 1) * meta.page_size}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
@@ -140,6 +160,15 @@ const TableVoucher = ({vouchers}: TableVoucherProps) => {
           ))}
         </tbody>
       </table>
+    </div>
+    <div className="my-4 flex flex-col items-end">
+      <Pagination
+        currentPage={meta.current_page}
+        totalData={meta.total}
+        pageSize={meta.page_size}
+        nextFn={nextFn}
+        prevFn={prevFn}
+      />
     </div>
     </div>
   )

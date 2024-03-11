@@ -1,14 +1,11 @@
 "use client"
 
 import AddUserModal from "@/api/AddUserModal"
-import roleAPI from "@/api/role"
 import userAPI from "@/api/user"
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb"
 import TableUser from "@/components/Tables/TableUser"
-import { Role } from "@/types/role"
 import { User, UserWithRoles } from "@/types/user"
 import { useSession } from "next-auth/react"
-import Link from "next/link"
 import { debounce } from "lodash"
 import { useEffect, useRef, useState } from "react"
 
@@ -26,7 +23,6 @@ const Users = () => {
 
   const getData = async (page: number, q?: string) => {
     try {
-      console.log("GET DATA", page, q)
       const token = session?.user?.token as string
       const response = await userAPI.getUsersWithRoles(token, {
         page: page,
@@ -47,7 +43,6 @@ const Users = () => {
 
   const debouncedSearch = useRef(
     debounce(async (query:string) => {
-      console.log("DEBOUNCED", query)
       await getData(metaData.current_page, query)
     }, 500)
   ).current

@@ -6,7 +6,7 @@ import { getApiUrl } from "@/utils/utils";
 import axios from "axios";
 
 interface VoucherAPI {
-  getVouchers: (token: string, page: number, pageSize: number, isExpired?: boolean) => Promise<Voucher[]>;
+  getVouchers: (token: string, params: getVouchersParams) => Promise<VoucherPaginationRepsonse>;
   getVoucherMemberByVoucherId: (token: string, voucherId: number) => Promise<getVoucherMemberByVoucherIdResponse>;
   getById: (token: string, id: number) => Promise<Voucher>;
   createVoucher: (token: string, input: InputCreateVoucher) => Promise<Voucher>;
@@ -14,6 +14,18 @@ interface VoucherAPI {
   updateVoucher: (token: string, input: InputUpdateVoucher) => Promise<Voucher>;
   setVoucherMembers: (token: string, input: InputSetVoucherMembers) => Promise<SuccessResponse>;
   getDetail: (token: string, id: number) => Promise<VoucherDetailResponse>;
+}
+
+type getVouchersParams = {
+  page?: number;
+  q?: string;
+  page_size?: number;
+  is_expired?: boolean;
+}
+
+export type VoucherPaginationRepsonse = {
+  data: Voucher[];
+  meta: Meta;
 }
 
 export type InputCreateVoucher = {
@@ -72,20 +84,19 @@ const voucherAPI: VoucherAPI = {
     })
     return resp.data.data as Voucher
   },
-  getVouchers: async (token: string, page: number, pageSize: number, isExpired?: boolean) => {
+  getVouchers: async (token: string, params: getVouchersParams) => {
     const url = new URL(`${getApiUrl()}/vouchers`)
-    url.searchParams.append("page", page.toString())
-    url.searchParams.append("page_size", pageSize.toString())
-    if (isExpired) {
-      url.searchParams.append("isExpired", "true")
-    }
+    url.searchParams.append("page", (params.page || 1).toString())
+    url.searchParams.append("page_size", (params.page_size || 10).toString())
+    if (params.q) url.searchParams.append("q", params.q)
+    if (params.is_expired) url.searchParams.append("is_expired", params.is_expired.toString())
     const resp = await axios.get(url.toString(), {
       headers: {
         Authorization: "Bearer " + token
       }
     })
 
-    return resp.data.data as Voucher[]
+    return resp.data as VoucherPaginationRepsonse
   },
   getVoucherMemberByVoucherId: async (token: string, voucherId: number) => {
     const resp = await axios.get(`${getApiUrl()}/vouchers/${voucherId}/members`, {
