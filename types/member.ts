@@ -3,3 +3,26 @@ export type MemberList = {
   name: string;
   email: string;
 }
+
+export type Member = {
+  id: number;
+  user_id: number;
+  store_id: number;
+  name: string;
+  point: number;
+  avatar: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type MemberWithStoreName = {
+  id: number;
+  user_id: number;
+  store_id: number;
+  name: string;
+  point: number;
+  avatar: string;
+  created_at: string;
+  updated_at: string;
+  store_name: string;
+}

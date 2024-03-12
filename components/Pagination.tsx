@@ -11,7 +11,7 @@ const Pagination = (props: PaginationParams) => {
   return (
     <>
     <div className="mb-2">
-      <p>Showing {(props.pageSize * (props.currentPage - 1)) + 1} to {props.pageSize * props.currentPage} of {props.totalData} Entries</p>
+      <p>Showing {(props.pageSize * (props.currentPage - 1)) + 1} to {(props.currentPage * props.pageSize) > props.totalData ? props.totalData : props.pageSize * props.currentPage} of {props.totalData} Entries</p>
     </div>
     <div className="flex">
       <div>
