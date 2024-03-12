@@ -288,7 +288,7 @@ const SocialMedia = () => {
                 </label>
                 {
                   appconf.contacts.phones.map((phone, index) => (
-                    <div className="flex items-center mb-3">
+                    <div className="flex items-center mb-3" key={index}>
                     <input
                       key={index}
                       required
@@ -315,7 +315,7 @@ const SocialMedia = () => {
                 </label>
                 {
                   appconf.contacts.emails.map((email, index) => (
-                    <div className="flex items-center mb-3">
+                    <div className="flex items-center mb-3" key={index}>
                     <input
                       key={index}
                       required
