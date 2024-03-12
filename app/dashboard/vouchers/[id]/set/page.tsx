@@ -12,8 +12,25 @@ import AsyncSelect from 'react-select/async';
 
 const Members = () => {
   const [selectedMembers, setSelectedMembers] = useState<{label: string, value: number}[]>([]);
-  const [voucher, setVoucher] = useState<Voucher>(null);
-  const [voucherStats, setVoucherStats] = useState<VoucherStats>(null);
+  const [voucher, setVoucher] = useState<Voucher>({
+    id: 0,
+    title: "",
+    description: "",
+    type: "",
+    amount: 0,
+    image: "",
+    start_at: "",
+    expired_at: "",
+    created_at: "",
+    updated_at: ""
+  });
+  const [voucherStats, setVoucherStats] = useState<VoucherStats>({
+    voucher_id: 0,
+    total_available_vouchers: 0,
+    total_unused_vouchers: 0,
+    total_used_vouchers: 0,
+    total_vouchers: 0
+  });
   const { data: session, status } = useSession();
   const params = useParams();
 
