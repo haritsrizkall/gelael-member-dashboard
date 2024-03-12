@@ -1,7 +1,7 @@
+
 import authAPI from "@/api/auth";
 import userAPI from "@/api/user";
 import { AuthOptions } from "next-auth";
-import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions: AuthOptions = {
@@ -70,7 +70,3 @@ export const authOptions: AuthOptions = {
     signIn: "/auth/signin",
   }
 }
-
-const handler = NextAuth(authOptions);
-
-export { handler as GET, handler as POST };
