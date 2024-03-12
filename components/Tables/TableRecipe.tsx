@@ -7,6 +7,9 @@ import recipeAPI from "@/api/recipe"
 import { useSession } from "next-auth/react"
 import AddRecipeModal from "../Modals/AddRecipeModal"
 import { useState } from "react"
+import Link from "next/link"
+import { FaEdit } from "react-icons/fa"
+import EditRecipeModal from "../Modals/EditRecipeModal"
 
 const columns = [
   {
@@ -46,6 +49,15 @@ interface TableRecipeProps {
 }
 
 const TableRecipe = ({recipes, setRecipes, meta, nextFn, prevFn, query, setQuery}: TableRecipeProps) => {
+  const [editMode, setEditMode] = useState(false)
+  const [recipe, setRecipe] = useState<Recipe>({
+    recipe_id: 0,
+    title: "",
+    image: "",
+    url: "",
+    created_at: "",
+    updated_at: ""
+  })
   const { data: session, status } = useSession()
   
   const handleDelete = async (id: number) => {
@@ -65,6 +77,12 @@ const TableRecipe = ({recipes, setRecipes, meta, nextFn, prevFn, query, setQuery
   } 
   return (
     <>
+    <EditRecipeModal
+      isOpen={editMode}
+      onClose={() => setEditMode(false)}
+      recipe={recipe}
+      setRecipes={setRecipes}
+    />
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
     {/* Search bar */}
     <div className="flex justify-between items-center mb-4">
@@ -150,6 +168,14 @@ const TableRecipe = ({recipes, setRecipes, meta, nextFn, prevFn, query, setQuery
                       fill=""
                     />
                   </svg>
+                </button>
+                <button 
+                  onClick={() => {
+                    setRecipe(recipe)
+                    setEditMode(true)
+                  }}
+                >
+                    <FaEdit className="text-primary" />
                 </button>
               </div>
             </td>

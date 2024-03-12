@@ -65,7 +65,7 @@ const Recipes = () => {
         onClose={() => setAddMode(false)}
         setRecipes={setRecipes}
       />
-      <Breadcrumb pageName="Vouchers" />
+      <Breadcrumb pageName="Recipes" />
       <button
         onClick={() => setAddMode(true)}
         className="flex justify-center rounded bg-primary py-3 px-5 mb-5 font-medium text-gray"

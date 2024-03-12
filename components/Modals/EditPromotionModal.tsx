@@ -39,7 +39,7 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
         price: parseInt(productPrice),
         discount: parseInt(discount),
         id: props.promotionItem.promotion_item_id,
-        image: defaultImage .split("/").pop() as string
+        image: defaultImage.split("/").pop() as string
       }
       const token = session?.user?.token as string
 
