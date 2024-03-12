@@ -4,6 +4,7 @@ import memberAPI from "@/api/member";
 import uploadAPI from "@/api/upload";
 import voucherAPI, { InputSetVoucherMembers } from "@/api/voucher";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb"
+import CreateVoucherMemberModal from "@/components/Modals/CreateVoucherMemberModal";
 import TableVoucherMember from "@/components/Tables/TableVoucherMember";
 import { Voucher, VoucherStats, defaultVoucher, defaultVoucherStats } from "@/types/voucher";
 import { VoucherMemberWithNameAndEmail } from "@/types/voucherMember";
@@ -22,6 +23,7 @@ const Members = () => {
   const [image, setImage] = useState<File | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(false);
   const [voucherMembers, setVoucherMembers] = useState<VoucherMemberWithNameAndEmail[]>([]);
+  const [giveMode, setGiveMode] = useState<boolean>(false);
   const { data: session, status } = useSession();
   const params = useParams();
 
@@ -90,11 +92,12 @@ const Members = () => {
 
   return (
     <>
+      <CreateVoucherMemberModal isOpen={giveMode} onClose={() => setGiveMode(false)} voucherID={parseInt(params.id as string)}/>
       <Breadcrumb
         pageName="Voucher Detail"
         parent={{ name: "Vouchers", link: "/dashboard/vouchers" }}
       />
-      <div className="flex flex-col gap-9">
+      <div className="flex flex-col gap-9 mb-10">
         <div className="grid grid-cols-4 gap-4">
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
@@ -290,6 +293,19 @@ const Members = () => {
         </div>
       </div>
 
+      {
+        voucher.type == "MEMBER" && (
+          <>
+          <h2 className="text-title-md3 font-semibold text-black dark:text-white mb-5">Voucher</h2>
+          <button
+            className="flex justify-center rounded bg-primary py-3 px-5 mb-5 font-medium text-gray"
+            onClick={() => setGiveMode(true)}
+          >
+              Give Voucher
+          </button>
+          </>
+        )
+      }
       <div className="mt-4">
         <TableVoucherMember voucherMembers={voucherMembers} />
       </div>

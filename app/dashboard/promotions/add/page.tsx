@@ -4,6 +4,7 @@ import promotionAPI from "@/api/promotion";
 import storeAPI from "@/api/store";
 import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import Button from "@/components/Button";
 import { StoreList } from "@/types/store";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -17,6 +18,7 @@ const AddPromotion = () => {
   const [color, setColor] = useState("#ffffff");
   const [expiredAt, setExpiredAt] = useState("");
   const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
+  const [loading, setLoading] = useState(false);
   const [selectedStore, setSelectedStores] = useState<{label: string, value: number}>({} as {label: string, value: number});
   const { data: session, status } = useSession() 
 
@@ -47,6 +49,7 @@ const AddPromotion = () => {
 
   const handleSubmit = async () => {
     // Add Promotion
+    setLoading(true);
     try {
       const input = {
         title,
@@ -82,6 +85,8 @@ const AddPromotion = () => {
     }catch (error) {
       console.log(error);
       alert("Failed to add promotion");
+    }finally {
+      setLoading(false);
     }
   }
 
@@ -179,12 +184,11 @@ const AddPromotion = () => {
                   </div>
                 </div>
 
-                <button
+                <Button
                   onClick={handleSubmit}
-                  className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray"
-                >
-                  Add Promotion
-                </button>
+                  text="Add Promotion"
+                  isLoading={loading}
+                />
               </div>
             </div>
           </div>

@@ -55,7 +55,7 @@ const memberAPI: MemberAPI = {
   getMemberList: async (token: string, page: number, pageSize: number, q?: string) => {
     const url = new URL(`${getApiUrl()}/members/list`)
     url.searchParams.append("page", page.toString())
-    url.searchParams.append("pageSize", pageSize.toString())
+    url.searchParams.append("page_size", pageSize.toString())
     if (q) {
       url.searchParams.append("q", q)
     }

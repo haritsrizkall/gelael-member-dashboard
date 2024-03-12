@@ -253,7 +253,6 @@ const Promotion = () => {
             </div>
           </div>
 
-          {/* <!-- Contact Form --> */}
           <h2 className="text-title-md3 font-semibold text-black dark:text-white mb-5">Promotion Item</h2>
           <button
             className="flex justify-center rounded bg-primary py-3 px-5 mb-5 font-medium text-gray"
