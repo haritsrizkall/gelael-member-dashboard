@@ -3,10 +3,10 @@
 import Button from "@/components/Button"
 import Modal, { ModalProps } from "@/components/Modals/Modal"
 import { useEffect, useState } from "react"
-import roleAPI from "./role"
+import roleAPI from "../../api/role"
 import { useSession } from "next-auth/react"
 import Select from "react-select";
-import userAPI from "./user"
+import userAPI from "../../api/user"
 
 interface AddUserModal extends ModalProps{
 }

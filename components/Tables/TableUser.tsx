@@ -1,4 +1,4 @@
-import AddUserModal from "@/api/AddUserModal";
+import AddUserModal from "@/components/Modals/AddUserModal";
 import { User, UserWithRoles } from "@/types/user";
 import { rolesToString } from "@/utils/utils";
 import moment from "moment";

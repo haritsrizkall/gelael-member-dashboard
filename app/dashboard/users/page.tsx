@@ -1,6 +1,6 @@
 "use client"
 
-import AddUserModal from "@/api/AddUserModal"
+import AddUserModal from "@/components/Modals/AddUserModal"
 import userAPI from "@/api/user"
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb"
 import TableUser from "@/components/Tables/TableUser"

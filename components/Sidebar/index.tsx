@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaImage, FaInstagram, FaSignOutAlt } from "react-icons/fa";
+import { FaAddressBook, FaImage, FaInstagram, FaSignOutAlt } from "react-icons/fa";
 import { signOut } from "next-auth/react";
 import { MdDiscount } from "react-icons/md";
 import { CiDiscount1 } from "react-icons/ci";
 import { FaUsers } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
-import { IoSettings } from "react-icons/io5";
+import { IoFastFood, IoSettings } from "react-icons/io5";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -176,6 +176,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 >
                   <FaUsers className="fill-current" />
                   User
+                </Link>
+              </li>
+              {/* <!-- Menu Item User --> */}
+
+              {/* <!-- Menu Item Recipe --> */}
+              <li>
+                <Link
+                  href="/dashboard/recipes"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    pathname.includes("recipes") &&
+                    "bg-graydark dark:bg-meta-4"
+                  }`}
+                >
+                  <IoFastFood className="fill-current" />
+                  Recipe
                 </Link>
               </li>
               {/* <!-- Menu Item User --> */}
