@@ -2,6 +2,7 @@
 
 import recipeAPI from "@/api/recipe"
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb"
+import AddRecipeModal from "@/components/Modals/AddRecipeModal"
 import TableRecipe from "@/components/Tables/TableRecipe"
 import { Recipe } from "@/types/recipe"
 import { debounce } from "lodash"
@@ -59,8 +60,14 @@ const Recipes = () => {
 
   return (
     <>
+      <AddRecipeModal
+        isOpen={addMode}
+        onClose={() => setAddMode(false)}
+        setRecipes={setRecipes}
+      />
       <Breadcrumb pageName="Vouchers" />
       <button
+        onClick={() => setAddMode(true)}
         className="flex justify-center rounded bg-primary py-3 px-5 mb-5 font-medium text-gray"
       >
           Add Recipe
