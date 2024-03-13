@@ -1,35 +1,39 @@
 "use client"
-import { useState } from "react";
+import { Dispatch, useState, SetStateAction } from "react";
 import Modal, { ModalProps } from "./Modal";
 import { MdContactPhone } from "react-icons/md";
 import Button from "../Button";
 import { Appconf } from "@/types/appconf";
+import appconfAPI from "@/api/appconf";
+import { useSession } from "next-auth/react";
 
 interface AddContactModal extends ModalProps {
-  onAdd: () => void;
+  onAdd: () => Promise<void>;
   contact: Appconf;
-  setContact: (appconf: Appconf) => void;
+  setContact: Dispatch<SetStateAction<Appconf>>;
 }
 
 const AddContactModal = (props: AddContactModal) => {
   const [contactValue, setContactValue] = useState(""); 
   const [contactType, setContactType] = useState("email");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    setLoading(true);
     if (contactType == 'email') {
-      props.setContact({
-        ...props.contact,
-        contacts: {
-          ...props.contact.contacts,
-          emails: [...props.contact.contacts.emails, contactValue]
-        }
-      });
+      let newAppconf = props.contact;
+      newAppconf.contacts.emails.push(contactValue);
+      props.setContact(newAppconf);
+    }else {
+      let newAppconf = props.contact;
+      newAppconf.contacts.phones.push(contactValue);
+      props.setContact(newAppconf);
     }
-
-    props.onAdd();
+    await props.onAdd();
 
     setContactValue("");
     setContactType("email");
+    setLoading(false);
   }
 
   return (
@@ -81,6 +85,7 @@ const AddContactModal = (props: AddContactModal) => {
         <Button
           text="Add Contact"
           onClick={handleSubmit}
+          isLoading={loading}
         />
       </div>
       </>

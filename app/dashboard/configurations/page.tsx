@@ -140,7 +140,6 @@ const SocialMedia = () => {
       <AddContactModal isOpen={addContacts} onClose={() => setAddContacts(false)} onAdd={handleEditContacts} setContact={setAppconf} contact={appconf} size="sm" />
       <Breadcrumb
         pageName="Configuration"
-        parent={{ name: "Dashboard", link: "/configuration" }}
       />
       
       <div>
