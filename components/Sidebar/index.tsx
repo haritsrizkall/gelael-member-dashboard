@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaAddressBook, FaImage, FaInstagram, FaSignOutAlt } from "react-icons/fa";
+import { FaAddressBook, FaImage, FaInstagram, FaSignOutAlt, FaStore } from "react-icons/fa";
 import { signOut } from "next-auth/react";
 import { MdDiscount } from "react-icons/md";
 import { CiDiscount1 } from "react-icons/ci";
@@ -193,8 +193,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   Recipe
                 </Link>
               </li>
-              {/* <!-- Menu Item User --> */}
+              {/* <!-- Menu Item Recipe --> */}
               
+               {/* <!-- Menu Item Store --> */}
+               <li>
+                <Link
+                  href="/dashboard/stores"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    pathname.includes("stores") &&
+                    "bg-graydark dark:bg-meta-4"
+                  }`}
+                >
+                  <FaStore className="fill-current" />
+                  Store
+                </Link>
+              </li>
+              {/* <!-- Menu Item Store --> */}
+
               {/* <!-- Menu Item Notifications --> */}
               <li>
                 <Link

@@ -60,7 +60,7 @@ interface TablePromotionProps {
 }  
 
 const TablePromotion = ({promotions, meta, nextFn, prevFn, query, setQuery}: TablePromotionProps) => {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession();
   const handleDelete = async (promotionId: number) => {
     try {
       const resp = await promotionAPI.deletePromotion(session?.user?.token as string, promotionId)
