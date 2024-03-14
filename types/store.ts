@@ -7,7 +7,7 @@ export type Store = {
   store_id: number;
   name: string;
   address: string;
-  phone: string;
+  phone_number: string;
   store_manager: string;
   store_manager_image: string;
   duty_manager_1: string;

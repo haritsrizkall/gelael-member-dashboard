@@ -6,6 +6,7 @@ import axios from "axios";
 interface StoreAPI {
   getStoresList: (token: string) => Promise<StoreList[]>;
   getStores: (token: string, params: getStoresParams) => Promise<StorePaginationResponse>;
+  getStore: (token: string, id: number) => Promise<Store>;
 }
 
 type getStoresParams = {
@@ -27,6 +28,15 @@ const storeAPI: StoreAPI = {
       }
     })
     return resp.data.data as StoreList[]
+  },
+  getStore: async (token: string, id: number) => {
+    const url = getApiUrl()
+    const resp = await axios.get(`${url}/stores/${id}`, {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    })
+    return resp.data.data as Store
   },
   getStores: async (token: string, params: getStoresParams) => {
     const url = new URL(`${getApiUrl()}/stores`)
