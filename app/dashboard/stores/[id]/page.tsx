@@ -2,6 +2,7 @@
 
 import storeAPI from "@/api/store";
 import storeImageAPI from "@/api/storeImage";
+import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import AddStoreImageModal from "@/components/Modals/AddStoreImageModal";
 import Loader from "@/components/common/Loader";
@@ -20,6 +21,10 @@ const Store = () => {
   const [addStoreImageMode, setAddStoreImageMode] = useState(false)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [deletingId, setDeletingId] = useState<number>(0)
+  const [storeManagerImage, setStoreManagerImage] = useState<File | null>(null)
+  const [dutyManager1Image, setDutyManager1Image] = useState<File | null>(null)
+  const [dutyManager2Image, setDutyManager2Image] = useState<File | null>(null)
+
   const params = useParams();
   const { data: session, status } = useSession()
 
@@ -46,8 +51,73 @@ const Store = () => {
       const newStoreImages = store?.store_images?.filter((image) => image.store_image_id !== id)
       setStore({...store, store_images: newStoreImages})
       setDeletingId(0)
+      alert("Success delete image")
     } catch (error) {
       alert("Failed to delete image")
+      console.log(error)
+    }
+  }
+
+  const handleUpdateManagerImage = async () => {
+    try {
+      const token = session?.user?.token as string
+
+      if (storeManagerImage !== undefined) {
+        const respStoreMgrImage = uploadAPI.upload(token, { file: storeManagerImage as File })
+      }
+
+      if (dutyManager1Image !== undefined) {
+        const respDutyMgr1Image = uploadAPI.upload(token, { file: dutyManager1Image as File })
+      }
+
+      if (dutyManager2Image !== undefined) {
+        const respDutyMgr2Image = uploadAPI.upload(token, { file: dutyManager2Image as File })
+      }
+
+      const input = {
+
+      }
+    }catch (error) {
+      console.log(error)
+    }
+  }
+
+  const handleEditDetail = async () => {
+    try {
+      setLoadingDetail(true)
+      const token = session?.user?.token as string
+      const input = {
+        id: store.store_id,
+        name: store.name,
+        address: store.address,
+        phone_number: store.phone_number,
+        store_manager: store.store_manager,
+        store_manager_image: store.store_manager_image.split("/").pop() as string,
+        duty_manager_1: store.duty_manager_1,
+        duty_manager_1_image: store.duty_manager_1_image.split("/").pop() as string,
+        duty_manager_2: store.duty_manager_2,
+        duty_manager_2_image: store.duty_manager_2_image.split("/").pop() as string
+      }
+      const response = await storeAPI.updateStore(token, input)
+      const newStore = {
+        ...store,
+        name: response.name,
+        address: response.address,
+        phone_number: response.phone_number,
+        store_manager: response.store_manager,
+        store_manager_image: response.store_manager_image,
+        duty_manager_1: response.duty_manager_1,
+        duty_manager_1_image: response.duty_manager_1_image,
+        duty_manager_2: response.duty_manager_2,
+        duty_manager_2_image: response.duty_manager_2_image
+      }
+      setStore(newStore)
+      setLoadingDetail(false)
+      setEditMode(false)
+      alert("Success update store")
+    } catch (error) {
+      alert("Failed to update store")
+      setLoadingDetail(false)
       console.log(error)
     }
   }
@@ -128,7 +198,7 @@ const Store = () => {
               Cancel
             </button>
             <button
-            onClick={() => {}}
+            onClick={handleEditDetail}
             className={cn("flex items-center gap-2.5 bg-primary py-3 px-6.5 rounded font-bold text-white transition hover:bg-primary-dark", loadingDetail ? "bg-gray text-primary" : "")}
           >
             <span>{loadingDetail ? "Loading..." : "Save"}</span>
@@ -168,18 +238,33 @@ const Store = () => {
             />
           </div>
           <div className="grow">
-            <label className="mb-2.5 block text-black dark:text-white">
-              Store Manager
-            </label>
-            <input
-              required
-              disabled={!editModeManager}
-              type="text"
-              value={store?.store_manager}
-              onChange={(e) =>  setStore({...store, store_manager: e.target.value})}
-              placeholder="Gelael MT"
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
+            <div>
+              <div className="mb-4 5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Store Manager
+                </label>
+                <input
+                  required
+                  disabled={!editModeManager}
+                  type="text"
+                  value={store?.store_manager}
+                  onChange={(e) =>  setStore({...store, store_manager: e.target.value})}
+                  placeholder="Gelael MT"
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                />
+              </div>
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Store Manager Image (Kosongkan jika tidak ingin update image)
+                </label>
+                <input
+                  disabled={!editMode}
+                  required
+                  type="file"
+                  className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
+                />  
+              </div>
+            </div>
           </div>
         </div>
         <div className="mb-4.5 flex w-full">
@@ -194,18 +279,31 @@ const Store = () => {
             />
           </div>
           <div className="grow">
-            <label className="mb-2.5 block text-black dark:text-white">
-              Duty Manager 1
-            </label>
-            <input
-              required
-              type="text"
-              disabled={!editModeManager}
-              value={store?.duty_manager_1}
-              onChange={(e) =>  setStore({...store, duty_manager_1: e.target.value})}
-              placeholder="Gelael MT"
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
+            <div className="mb-4.5">
+              <label className="mb-2.5 block text-black dark:text-white">
+                Duty Manager 1
+              </label>
+              <input
+                required
+                type="text"
+                disabled={!editModeManager}
+                value={store?.duty_manager_1}
+                onChange={(e) =>  setStore({...store, duty_manager_1: e.target.value})}
+                placeholder="Gelael MT"
+                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              />
+            </div>
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Duty Manager Image (Kosongkan jika tidak ingin update image)
+                </label>
+                <input
+                  disabled={!editMode}
+                  required
+                  type="file"
+                  className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
+                />  
+              </div>
           </div>
         </div>
         <div className="mb-4.5 flex">
@@ -220,18 +318,31 @@ const Store = () => {
             />
           </div>
           <div className="grow">
-            <label className="mb-2.5 block text-black dark:text-white">
-              Duty Manager 2
-            </label>
-            <input
-              required
-              type="text"
-              disabled={!editModeManager}
-              value={store?.duty_manager_2}
-              onChange={(e) =>  setStore({...store, duty_manager_2: e.target.value})}
-              placeholder="Gelael MT"
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
+            <div className="mb-4.5">
+              <label className="mb-2.5 block text-black dark:text-white">
+                Duty Manager 2
+              </label>
+              <input
+                required
+                type="text"
+                disabled={!editModeManager}
+                value={store?.duty_manager_2}
+                onChange={(e) =>  setStore({...store, duty_manager_2: e.target.value})}
+                placeholder="Gelael MT"
+                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              />
+            </div>
+            <div className="mb-4.5">
+              <label className="mb-2.5 block text-black dark:text-white">
+                Duty Manager 2 Image (Kosongkan jika tidak ingin update image)
+              </label>
+              <input
+                disabled={!editMode}
+                required
+                type="file"
+                className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
+              />  
+            </div>
           </div>
         </div>
       </div>

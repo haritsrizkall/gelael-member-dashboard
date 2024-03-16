@@ -7,6 +7,20 @@ interface StoreAPI {
   getStoresList: (token: string) => Promise<StoreList[]>;
   getStores: (token: string, params: getStoresParams) => Promise<StorePaginationResponse>;
   getStore: (token: string, id: number) => Promise<Store>;
+  updateStore: (token: string, params: updateStoreParams) => Promise<Store>;
+}
+
+type updateStoreParams = {
+  id: number;
+  name: string;
+  address: string;
+  phone_number: string;
+  store_manager: string;
+  store_manager_image: string;
+  duty_manager_1: string;
+  duty_manager_1_image: string;
+  duty_manager_2: string;
+  duty_manager_2_image: string;
 }
 
 type getStoresParams = {
@@ -20,6 +34,25 @@ type StorePaginationResponse = {
 };
 
 const storeAPI: StoreAPI = {
+  updateStore: async (token: string, params: updateStoreParams) => {
+    const url = getApiUrl()
+    const resp = await axios.put(`${url}/stores/${params.id}`, {
+      name: params.name,
+      address: params.address,
+      phone_number: params.phone_number,
+      store_manager: params.store_manager,
+      store_manager_image: params.store_manager_image,
+      duty_manager_1: params.duty_manager_1,
+      duty_manager_1_image: params.duty_manager_1_image,
+      duty_manager_2: params.duty_manager_2,
+      duty_manager_2_image: params.duty_manager_2_image
+    }, {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    })
+    return resp.data.data as Store
+  },
   getStoresList: async (token: string) => {
     const url = getApiUrl()
     const resp = await axios.get(`${url}/stores`, {
