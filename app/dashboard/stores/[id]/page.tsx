@@ -1,18 +1,25 @@
 "use client"
 
 import storeAPI from "@/api/store";
-import { Store } from "@/types/store";
+import storeImageAPI from "@/api/storeImage";
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import AddStoreImageModal from "@/components/Modals/AddStoreImageModal";
+import Loader from "@/components/common/Loader";
+import { Store, StoreImage } from "@/types/store";
 import { cn } from "@/utils/utils";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { TiDelete } from "react-icons/ti";
 
 const Store = () => {
   const [store, setStore] = useState<Store>({} as Store)
   const [editMode, setEditMode] = useState(false)
   const [editModeManager, setEditModeManager] = useState(false)
+  const [addStoreImageMode, setAddStoreImageMode] = useState(false)
   const [loadingDetail, setLoadingDetail] = useState(false)
+  const [deletingId, setDeletingId] = useState<number>(0)
   const params = useParams();
   const { data: session, status } = useSession()
 
@@ -31,9 +38,33 @@ const Store = () => {
     getStore()
   }, [params.id])
 
+  const handleDeleteImage = async (id: number) => {
+    try {
+      const token = session?.user?.token as string
+      setDeletingId(id)
+      const response = await storeImageAPI.delete(token, id)
+      const newStoreImages = store?.store_images?.filter((image) => image.store_image_id !== id)
+      setStore({...store, store_images: newStoreImages})
+      setDeletingId(0)
+    } catch (error) {
+      alert("Failed to delete image")
+      console.log(error)
+    }
+  }
+
   
   return (
     <>
+    <AddStoreImageModal
+      isOpen={addStoreImageMode}
+      onClose={() => setAddStoreImageMode(false)}
+      storeId={parseInt(params.id as string)}
+      setStore={setStore}
+    />
+    <Breadcrumb
+      pageName="Store Detail"
+      parent={{ name: "Stores", link: "/dashboard/stores" }}
+    />
     <div className="flex flex-col gap-9 mb-10">
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark flex items-center">
@@ -231,6 +262,52 @@ const Store = () => {
             </button>
           )
         }
+      </div>
+      </div>
+    </div>
+
+    <h2 className="text-title-md3 font-semibold text-black dark:text-white mb-5">Store Image</h2>
+    <button
+      className="flex justify-center rounded bg-primary py-3 px-5 mb-5 font-medium text-gray"
+      onClick={() => setAddStoreImageMode(true)}
+    >
+        Add Image
+    </button>
+    <div className="flex flex-col gap-9 mb-10">
+      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark flex items-center">
+          <h3 className="font-medium text-black dark:text-white mr-3">
+            Store Images
+          </h3>
+        </div>
+        
+      <div className="p-6.5">
+        <div className="flex">
+          {
+            store?.store_images?.map((image: StoreImage, index) => (
+              <div key={index} className="relative mr-4.5">
+                {
+                  deletingId === image.store_image_id &&
+                  <div className="flex items-center justify-center absolute bg-gray opacity-50 w-full h-full rounded">
+                    <div className="h-7 w-7 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+                  </div>
+                }
+                <Image
+                  src={image.image}
+                  loader={() => image.image}
+                  alt="voucher"
+                  width={150}
+                  height={150}
+                  className="rounded"
+                />
+                <TiDelete 
+                  className="fill-current absolute top-0 right-0 text-3xl text-danger cursor-pointer"
+                  onClick={() => handleDeleteImage(image.store_image_id)}
+                />
+              </div>
+            ))
+          }
+        </div>
       </div>
       </div>
     </div>
