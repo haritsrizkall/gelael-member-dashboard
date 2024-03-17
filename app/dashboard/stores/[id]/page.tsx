@@ -20,10 +20,11 @@ const Store = () => {
   const [editModeManager, setEditModeManager] = useState(false)
   const [addStoreImageMode, setAddStoreImageMode] = useState(false)
   const [loadingDetail, setLoadingDetail] = useState(false)
+  const [loadingEditManager, setLoadingEditManager] = useState(false)
   const [deletingId, setDeletingId] = useState<number>(0)
-  const [storeManagerImage, setStoreManagerImage] = useState<File | null>(null)
-  const [dutyManager1Image, setDutyManager1Image] = useState<File | null>(null)
-  const [dutyManager2Image, setDutyManager2Image] = useState<File | null>(null)
+  const [storeManagerImage, setStoreManagerImage] = useState<File | undefined>(undefined)
+  const [dutyManager1Image, setDutyManager1Image] = useState<File | undefined>(undefined)
+  const [dutyManager2Image, setDutyManager2Image] = useState<File | undefined>(undefined)
 
   const params = useParams();
   const { data: session, status } = useSession()
@@ -60,25 +61,55 @@ const Store = () => {
 
   const handleUpdateManagerImage = async () => {
     try {
+      setLoadingEditManager(true)
       const token = session?.user?.token as string
+      let input = {
+        id: store.store_id,
+        name: store.name,
+        address: store.address,
+        phone_number: store.phone_number,
+        store_manager: store.store_manager,
+        store_manager_image: store.store_manager_image.split("/").pop() as string,
+        duty_manager_1: store.duty_manager_1,
+        duty_manager_1_image: store.duty_manager_1_image.split("/").pop() as string,
+        duty_manager_2: store.duty_manager_2,
+        duty_manager_2_image: store.duty_manager_2_image.split("/").pop() as string
+      }
 
       if (storeManagerImage !== undefined) {
-        const respStoreMgrImage = uploadAPI.upload(token, { file: storeManagerImage as File })
+        const respStoreMgrImage = await uploadAPI.upload(token, { file: storeManagerImage as File })
+        input.store_manager_image = respStoreMgrImage.data.filename.split("/").pop() as string
       }
 
       if (dutyManager1Image !== undefined) {
-        const respDutyMgr1Image = uploadAPI.upload(token, { file: dutyManager1Image as File })
+        const respDutyMgr1Image = await uploadAPI.upload(token, { file: dutyManager1Image as File })
+        input.duty_manager_1_image = respDutyMgr1Image.data.filename.split("/").pop() as string
       }
 
       if (dutyManager2Image !== undefined) {
-        const respDutyMgr2Image = uploadAPI.upload(token, { file: dutyManager2Image as File })
+        const respDutyMgr2Image = await uploadAPI.upload(token, { file: dutyManager2Image as File })
+        input.duty_manager_2_image = respDutyMgr2Image.data.filename.split("/").pop() as string
       }
 
-      const input = {
-
+      const response = await storeAPI.updateStore(token, input)
+      const newStore = {
+        ...store,
+        store_manager: response.store_manager,
+        store_manager_image: response.store_manager_image,
+        duty_manager_1: response.duty_manager_1,
+        duty_manager_1_image: response.duty_manager_1_image,
+        duty_manager_2: response.duty_manager_2,
+        duty_manager_2_image: response.duty_manager_2_image
       }
+
+      setStore(newStore)
+      setEditModeManager(false)
+      alert("Success update store")
     }catch (error) {
+      alert("Failed to update store")
       console.log(error)
+    }finally {
+      setLoadingEditManager(false)
     }
   }
 
@@ -258,9 +289,10 @@ const Store = () => {
                   Store Manager Image (Kosongkan jika tidak ingin update image)
                 </label>
                 <input
-                  disabled={!editMode}
+                  disabled={!editModeManager}
                   required
                   type="file"
+                  onChange={(e) => setStoreManagerImage(e.target.files?.[0])}
                   className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
                 />  
               </div>
@@ -298,9 +330,10 @@ const Store = () => {
                   Duty Manager Image (Kosongkan jika tidak ingin update image)
                 </label>
                 <input
-                  disabled={!editMode}
+                  disabled={!editModeManager}
                   required
                   type="file"
+                  onChange={(e) => setDutyManager1Image(e.target.files?.[0])}
                   className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
                 />  
               </div>
@@ -337,9 +370,10 @@ const Store = () => {
                 Duty Manager 2 Image (Kosongkan jika tidak ingin update image)
               </label>
               <input
-                disabled={!editMode}
+                disabled={!editModeManager}
                 required
                 type="file"
+                onChange={(e) => setDutyManager2Image(e.target.files?.[0])}
                 className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
               />  
             </div>
@@ -358,10 +392,10 @@ const Store = () => {
               Cancel
             </button>
             <button
-            onClick={() => {}}
-            className={cn("flex items-center gap-2.5 bg-primary py-3 px-6.5 rounded font-bold text-white transition hover:bg-primary-dark", loadingDetail ? "bg-gray text-primary" : "")}
+            onClick={handleUpdateManagerImage}
+            className={cn("flex items-center gap-2.5 bg-primary py-3 px-6.5 rounded font-bold text-white transition hover:bg-primary-dark", loadingEditManager ? "bg-gray text-primary" : "")}
           >
-            <span>{loadingDetail ? "Loading..." : "Save"}</span>
+            <span>{loadingEditManager ? "Loading..." : "Save"}</span>
           </button>
           </>
           ) : (
