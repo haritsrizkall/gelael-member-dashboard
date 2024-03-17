@@ -29,6 +29,10 @@ export default function RootLayout({
     setTimeout(() => setLoading(false), 1000);
   }, []);
 
+  if (status === "loading") {
+    return <Loader />;
+  }
+
   return (
     <html lang="en">
       <body suppressHydrationWarning={true}>
