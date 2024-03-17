@@ -5,6 +5,7 @@ import storeAPI from "@/api/store";
 import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Button from "@/components/Button";
+import ErrorText from "@/components/ErrorText";
 import { StoreList } from "@/types/store";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -19,17 +20,30 @@ const AddPromotion = () => {
   const [expiredAt, setExpiredAt] = useState("");
   const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
   const [loading, setLoading] = useState(false);
-  const [selectedStore, setSelectedStores] = useState<{label: string, value: number}>({} as {label: string, value: number});
-  const { data: session, status } = useSession() 
+  const [selectedStore, setSelectedStores] = useState<{label: string, value: number}>({
+    label: "",
+    value: 0
+  } as {label: string, value: number});
+  const [errorForm, setErrorForm] = useState({
+    title: "",
+    description: "",
+    image: "",
+    color: "",
+    expiredAt: "",
+    store_id: ""
+  });
+  const { data: session } = useSession() 
 
-  const createPromotionSchema = z.object({
-    title: z.string(),
-    description: z.string(),
-    image: z.string(),
-    color: z.string(),
-    expired_at: z.date(),
-    store_id: z.number()
-  })
+  const cleanErrorForm = () => {
+    setErrorForm({
+      title: "",
+      description: "",
+      image: "",
+      color: "",
+      expiredAt: "",
+      store_id: ""
+    });
+  }
 
   const getStores = async () => {
     const resp = await storeAPI.getStoresList(session?.user?.token as string);
@@ -47,9 +61,26 @@ const AddPromotion = () => {
     getStores()
   }, []);
 
+  
+  const createPromotionSchema = z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    image: z.string(),
+    color: z.string(),
+    expired_at: z.coerce.date().refine((data) => {
+      return data > new Date();
+      }, {
+      message: "Expired at must be greater than today"
+    }),
+    store_id: z.number().nonnegative().refine((store_id) => store_id !== 0, {
+      message: "Store is required"
+    }),
+  })
+
   const handleSubmit = async () => {
     // Add Promotion
     setLoading(true);
+    cleanErrorForm();
     try {
       const input = {
         title,
@@ -59,8 +90,32 @@ const AddPromotion = () => {
         expired_at: new Date(expiredAt),
         store_id: selectedStore.value
       }
-      createPromotionSchema.parse(input)
-      
+      const result = createPromotionSchema.safeParse(input);
+      console.log("Result ", result);
+      if (!result.success) {
+        const errors = result.error.format();
+        console.log("Errors ", errors);
+        setErrorForm({
+          title: errors?.title?._errors[0]!,
+          description: errors?.description?._errors[0]!,
+          image: errors?.image?._errors[0]!,
+          color: errors?.color?._errors[0]!,
+          expiredAt: errors?.expired_at?._errors[0]!,
+          store_id: errors?.store_id?._errors[0]!
+        })
+        setLoading(false);
+        return;
+      }
+
+      if (!image) {
+        setErrorForm({
+          ...errorForm,
+          image: "Image is required"
+        });
+        setLoading(false);
+        return;
+      }
+
       const token = session?.user?.token as string;
       const resp = await uploadAPI.upload(token, { file: image as File });
   
@@ -80,8 +135,9 @@ const AddPromotion = () => {
       setTitle("");
       setDescription("");
       setImage(undefined);
-      setColor("");
+      setColor("#ffffff");
       setExpiredAt("");
+      cleanErrorForm();
     }catch (error) {
       console.log(error);
       alert("Failed to add promotion");
@@ -117,6 +173,7 @@ const AddPromotion = () => {
                     placeholder="title"
                     className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
+                  <ErrorText>{errorForm.title}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -131,6 +188,7 @@ const AddPromotion = () => {
                       placeholder="description"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
+                  <ErrorText>{errorForm.description}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -143,6 +201,7 @@ const AddPromotion = () => {
                       setSelectedStores(data as {label: string, value: number})
                     }}
                   />
+                  <ErrorText>{errorForm.store_id}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -154,7 +213,8 @@ const AddPromotion = () => {
                     onChange={(e) => setImage(e.target.files?.[0])}
                     type="file"
                     className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
-                  />  
+                  />
+                  <ErrorText>{errorForm.image}</ErrorText>  
                 </div>
 
                 <div className="mb-4.5">
@@ -167,6 +227,7 @@ const AddPromotion = () => {
                     value={color}
                     placeholder="#FFFFF"
                   />
+                  <ErrorText>{errorForm.color}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -181,6 +242,7 @@ const AddPromotion = () => {
                       type="date"
                       className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
+                    <ErrorText>{errorForm.expiredAt}</ErrorText>
                   </div>
                 </div>
 

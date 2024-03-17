@@ -7,7 +7,7 @@ import { FaEdit } from "react-icons/fa";
 import promotionAPI from "@/api/promotion";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import EditPromotionItemModal from "../Modals/EditPromotionModal";
+import EditPromotionItemModal from "../Modals/EditPromotionItemModal";
 import { Meta } from "@/types/meta";
 import Pagination from "../Pagination";
 import DeleteConfirmationModal from "../Modals/DeleteConfirmationModal";

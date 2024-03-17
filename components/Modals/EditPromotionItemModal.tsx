@@ -34,6 +34,8 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
   const handleSubmit = async () => {
     try {
       setLoading(true)
+      cleanErrorForm()
+      
       const newPromotionItem = {
         product_name: productName,
         price: parseInt(productPrice),

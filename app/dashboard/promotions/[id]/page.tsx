@@ -5,6 +5,7 @@ import storeAPI from "@/api/store";
 import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Button from "@/components/Button";
+import ErrorText from "@/components/ErrorText";
 import AddPromotionItemModal from "@/components/Modals/AddPromotionItemModal";
 import TablePromotionItem from "@/components/Tables/TablePromotionItem";
 import { PromotionItem } from "@/types/promotionItem";
@@ -24,10 +25,31 @@ const Promotion = () => {
   const [expiredAt, setExpiredAt] = useState<string>("");
   const [defaultStoreId, setDefaultStoreId] = useState<number>(0);
   const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
-  const [selectedStore, setSelectedStores] = useState<{label: string, value: number}>({} as {label: string, value: number});
+  const [selectedStore, setSelectedStores] = useState<{label: string, value: number}>({
+    label: "",
+    value: 0
+  } as {label: string, value: number});
   const [addPromotionItem, setAddPromotionItem] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [promotionId, setPromotionId] = useState<number>(0);
+  const [errorForm, setErrorForm] = useState({
+    title: "",
+    description: "",
+    image: "",
+    color: "",
+    expiredAt: "",
+    store_id: ""
+  });
+  const cleanErrorForm = () => {
+    setErrorForm({
+      title: "",
+      description: "",
+      image: "",
+      color: "",
+      expiredAt: "",
+      store_id: ""
+    });
+  }
 
   // State Promotion Item
   const [promotionItems, setPromotionItems] = useState<PromotionItem[]>([]);
@@ -38,7 +60,7 @@ const Promotion = () => {
     total_page: 0
   })
 
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const params = useParams();
 
@@ -47,7 +69,6 @@ const Promotion = () => {
     let storeOptions = resp.map(store => {
       if (resp.length > 0 && defaultStoreId == store.store_id) {
         setDefaultStoreId(store.store_id);
-        console.log("defaultz store id", {label: store.name, value: store.store_id});
         setSelectedStores({label: store.name, value: store.store_id}); 
       }
       return {
@@ -105,12 +126,18 @@ const Promotion = () => {
   }, [params.id]);
 
   const createPromotionSchema = z.object({
-    title: z.string(),
-    description: z.string(),
+    title: z.string().min(1),
+    description: z.string().min(1),
     image: z.string(),
     color: z.string(),
-    expired_at: z.date(),
-    store_id: z.number()
+    expired_at: z.coerce.date().refine((data) => {
+      return data > new Date();
+      }, {
+      message: "Expired at must be greater than today"
+    }),
+    store_id: z.number().nonnegative().refine((store_id) => store_id !== 0, {
+      message: "Store is required"
+    }),
   })
 
   const handleSubmit = async () => {
@@ -124,7 +151,21 @@ const Promotion = () => {
         expired_at: new Date(expiredAt),
         store_id: selectedStore.value
       }
-      createPromotionSchema.parse(input)
+      const result = createPromotionSchema.safeParse(input);
+      console.log("Result ", result);
+      if (!result.success) {
+        const errors = result.error.format();
+        setErrorForm({
+          title: errors?.title?._errors[0]!,
+          description: errors?.description?._errors[0]!,
+          image: errors?.image?._errors[0]!,
+          color: errors?.color?._errors[0]!,
+          expiredAt: errors?.expired_at?._errors[0]!,
+          store_id: errors?.store_id?._errors[0]!
+        })
+        setLoading(false);
+        return;
+      }
 
       const token = session?.user?.token as string;
 
@@ -159,6 +200,7 @@ const Promotion = () => {
           alert("Promotion update successfully");
         }
       }      
+      cleanErrorForm();
     }catch (error) {
       console.log(error);
       alert("Failed to add promotion");
@@ -196,6 +238,7 @@ const Promotion = () => {
                     placeholder="title"
                     className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
+                  <ErrorText>{errorForm.title}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -210,6 +253,7 @@ const Promotion = () => {
                       placeholder="description"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
+                    <ErrorText>{errorForm.description}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -227,12 +271,11 @@ const Promotion = () => {
                       })
                     }}
                     defaultValue={storeOptions.find(store => {
-                      console.log("store", store.value);
-                      console.log("default store id", defaultStoreId);
                       return store.value == defaultStoreId
                     })}
                     value={selectedStore}
                   />
+                  <ErrorText>{errorForm.store_id}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -245,6 +288,7 @@ const Promotion = () => {
                     type="file"
                     className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
                   />  
+                  <ErrorText>{errorForm.image}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -257,6 +301,7 @@ const Promotion = () => {
                     value={color}
                     placeholder="#FFFFF"
                   />
+                  <ErrorText>{errorForm.color}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -271,6 +316,7 @@ const Promotion = () => {
                       type="date"
                       className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
+                    <ErrorText>{errorForm.expiredAt}</ErrorText>
                   </div>
                 </div>
                 <Button

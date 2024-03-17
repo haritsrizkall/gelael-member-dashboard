@@ -33,8 +33,8 @@ const SignIn: React.FC = () => {
       const result = loginSchema.safeParse({ email, password });
       if (!result.success) {
         setErrorForm({
-          email: result.error.errors[0].message,
-          password: result.error.errors[1].message,
+          email: result.error.errors[0]?.message,
+          password: result.error.errors[1]?.message,
         });
         setIsLoading(false);
         return;
@@ -150,7 +150,7 @@ const SignIn: React.FC = () => {
                     </span>
 
                     <ErrorText className="mt-1">{errorForm.password}</ErrorText>
-                    
+
                   </div>
                 </div>
 
