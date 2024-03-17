@@ -7,17 +7,39 @@ import Button from "@/components/Button";
 import { useRouter } from "next/navigation";
 import ErrorAlert from "@/components/ErrorAlert";
 import { signIn } from "next-auth/react";
+import { z } from "zod";
+import ErrorText from "@/components/ErrorText";
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [errorForm, setErrorForm] = useState({
+    email: "",
+    password: "",
+  });
   const router = useRouter()
+
+  const loginSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+  });
 
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
+
+      const result = loginSchema.safeParse({ email, password });
+      if (!result.success) {
+        setErrorForm({
+          email: result.error.errors[0].message,
+          password: result.error.errors[1].message,
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const resp = await signIn("credentials", {
         redirect: false,
         email,
@@ -87,6 +109,8 @@ const SignIn: React.FC = () => {
                         </g>
                       </svg>
                     </span>
+
+                    <ErrorText className="mt-1">{errorForm.email}</ErrorText>
                   </div>
                 </div>
 
@@ -124,6 +148,9 @@ const SignIn: React.FC = () => {
                         </g>
                       </svg>
                     </span>
+
+                    <ErrorText className="mt-1">{errorForm.password}</ErrorText>
+                    
                   </div>
                 </div>
 
