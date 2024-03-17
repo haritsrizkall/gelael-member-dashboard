@@ -89,7 +89,7 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
         </div>
         <div className="mb-4.5">
           <label className="mb-2.5 block text-black dark:text-white">
-            Image
+            Image (Kosongkan jika tidak ingin mengganti gambar)
           </label>
           <input
             required

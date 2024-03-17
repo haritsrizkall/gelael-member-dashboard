@@ -37,16 +37,22 @@ const AddPromotionItemModal = (props: AddPromotionItemModalProps) => {
       newPromotionItem.image = resp.data.filename.split("/").pop() as string
 
       const promotionItem = await promotionItemAPI.createPromotionItem(token, newPromotionItem)
-
+      console.log(promotionItem)
       props.setPromotionItems((prev: any) => {
         if (prev) {
-          console.log("prev ", prev)
-          console.log("promotionItem ", promotionItem)
-          return [...prev, promotionItem]
+          return [...prev, {
+            ...promotionItem,
+            promotion_id: props.promotionId
+          }]
         }else {
           return [promotionItem]
         }
       })
+      
+      setProductName("")
+      setProductPrice("")
+      setDiscount("")
+      setImage(undefined)
       
       props.onClose()
       alert("Promotion Item added successfully")

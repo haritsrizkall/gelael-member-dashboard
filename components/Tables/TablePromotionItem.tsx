@@ -5,11 +5,11 @@ import { PromotionItem } from "@/types/promotionItem"
 import { useSession } from "next-auth/react"
 import { FaEdit } from "react-icons/fa"
 import EditPromotionItemModal from "../Modals/EditPromotionModal"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import Pagination from "../Pagination"
-import { debounce } from "lodash"
 import Image from "next/image"
-import { Promotion } from "@/types/promotion"
+import DeleteConfirmationModal from "../Modals/DeleteConfirmationModal"
+import { Meta } from "@/types/meta"
 
 const columns = [
   {
@@ -39,10 +39,14 @@ const columns = [
 ]
 
 interface TablePromotionItemProps {
-  promotionID: number
+  promotionItems: PromotionItem[]
+  setPromotionItems: (promotionItems: PromotionItem[]) => void
+  meta: Meta
+  nextFn: () => void
+  prevFn: () => void
 }
 
-const TablePromotionItem = ({promotionID}: TablePromotionItemProps) => {
+const TablePromotionItem = ({promotionItems, setPromotionItems, meta, nextFn, prevFn}: TablePromotionItemProps) => {
   const [promotion, setPromotion] = useState<PromotionItem>({
     promotion_item_id: 0,
     product_name: "",
@@ -54,75 +58,41 @@ const TablePromotionItem = ({promotionID}: TablePromotionItemProps) => {
     image: ""
   })
   const [editMode, setEditMode] = useState(false)
-  const [metaData, setMetaData] = useState({
-    current_page: 1,
-    page_size: 15,
-    total: 0,
-    total_page: 0
-  })
-  const [query, setQuery] = useState("")
-  const [promotionItems, setPromotionItems] = useState<PromotionItem[]>([])
-  const [promotionId, setPromotionId] = useState<number>(0)
+  const [promotionItemId, setPromotionItemId] = useState<number>(0)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [deleteModal, setDeleteModal] = useState<boolean>(false)
   const { data: session, status } = useSession()
   
-  const handleDelete = async (id: number) => {
+  const handleDelete = async () => {
     try {
       // delete promotion item
+      setLoading(true)
       const token = session?.user?.token as string 
-      const resp = await promotionItemAPI.deletePromotionItem(token, id)
+      await promotionItemAPI.deletePromotionItem(token, promotionItemId)
       
       // update promotion items
-      const newPromotionItems = promotionItems.filter((item: PromotionItem) => item.promotion_item_id !== id)
+      const newPromotionItems = promotionItems.filter((item: PromotionItem) => item.promotion_item_id !== promotionItemId)
       setPromotionItems(newPromotionItems)
 
       alert("Promotion item deleted successfully")
+      setDeleteModal(false)
+      setPromotionItemId(0)
     } catch (error) {
       alert("Failed to delete promotion item")
       console.log(error)
+    }finally {
+      setLoading(false)
     }
   }
-
-  const getData = async (q?: string) => {
-    try {
-      console.log("promotion id", promotionId)
-      const token = session?.user?.token as string
-      const resp = await promotionItemAPI.getPromotionItemsByPromotionID(token, {
-        promotion_id: promotionID,
-        page: metaData.current_page,
-        page_size: metaData.page_size,
-        q: q
-      })
-      setPromotionItems(resp.data)
-      setMetaData(resp.meta)
-      console.log("promotion items", promotionItems)
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  useEffect(() => {
-    getData()
-    setPromotionId(promotionID)
-  }, [promotionID, metaData.current_page])
-
-
-  const debouncedSearch = useRef(
-    debounce(async (query:string) => {
-      await getData(query)
-    }, 500)
-  ).current
-
-  const setQueryDebounced = async (value: string) => {
-    setQuery(value)
-    debouncedSearch(value)
-  }
-  
-  useEffect(() => {
-    debouncedSearch.cancel()
-  }, [debouncedSearch]);
 
   return (
     <>
+    <DeleteConfirmationModal
+      isOpen={deleteModal}
+      onClose={() => setDeleteModal(false)}
+      onDelete={handleDelete}
+      loading={loading}
+    />
     <EditPromotionItemModal 
       promotionItem={promotion} 
       promotionItems={promotionItems}
@@ -156,11 +126,11 @@ const TablePromotionItem = ({promotionID}: TablePromotionItemProps) => {
             </tr>
           </thead>
           <tbody>
-              {promotionItems && promotionItems.map((item: PromotionItem, key) => (
-                <tr key={key}>
+              {promotionItems?.map((item: PromotionItem, key) => (
+                <tr key={item.promotion_item_id}>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
                     <p className="text-black dark:text-white">
-                      {key + 1 + (metaData.current_page - 1) * metaData.page_size}
+                      {key + 1 + (meta.current_page - 1) * meta.page_size}
                     </p>
                   </td>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
@@ -197,7 +167,10 @@ const TablePromotionItem = ({promotionID}: TablePromotionItemProps) => {
                   </td>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <div className="flex items-center space-x-3.5">
-                <button className="hover:text-primary" onClick={() => handleDelete(item.promotion_item_id)}>
+                <button className="hover:text-primary" onClick={() => {
+                  setPromotionItemId(item.promotion_item_id)
+                  setDeleteModal(true)
+                }}>
                   <svg
                     className="fill-current"
                     width="18"
@@ -239,25 +212,11 @@ const TablePromotionItem = ({promotionID}: TablePromotionItemProps) => {
       </div>
       <div className="my-4 flex flex-col items-end">
       <Pagination
-        currentPage={metaData.current_page}
-        totalData={metaData.total}
-        pageSize={metaData.page_size}
-        nextFn={() => {
-          if (metaData.current_page < metaData.total_page) {
-            setMetaData({
-              ...metaData,
-              current_page: metaData.current_page + 1
-            })
-          }
-        }}
-        prevFn={() => {
-          if (metaData.current_page > 1) {
-            setMetaData({
-              ...metaData,
-              current_page: metaData.current_page - 1
-            })
-          }
-        }}
+        currentPage={meta.current_page}
+        totalData={meta.total}
+        pageSize={meta.page_size}
+        nextFn={nextFn}
+        prevFn={prevFn}
       />
     </div>
     </div>

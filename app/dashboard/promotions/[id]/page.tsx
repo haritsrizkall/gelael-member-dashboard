@@ -1,5 +1,6 @@
 "use client"
 import promotionAPI from "@/api/promotion";
+import promotionItemAPI from "@/api/promotionItem";
 import storeAPI from "@/api/store";
 import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
@@ -24,12 +25,20 @@ const Promotion = () => {
   const [defaultStoreId, setDefaultStoreId] = useState<number>(0);
   const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
   const [selectedStore, setSelectedStores] = useState<{label: string, value: number}>({} as {label: string, value: number});
-  const [promotionItems, setPromotionItems] = useState<PromotionItem[]>([]);
   const [addPromotionItem, setAddPromotionItem] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [promotionId, setPromotionId] = useState<number>(0);
+
+  // State Promotion Item
+  const [promotionItems, setPromotionItems] = useState<PromotionItem[]>([]);
+  const [metaData, setMetaData] = useState({
+    current_page: 1,
+    page_size: 15,
+    total: 0,
+    total_page: 0
+  })
+
   const { data: session, status } = useSession();
-  const router = useRouter();
 
   const params = useParams();
 
@@ -48,30 +57,50 @@ const Promotion = () => {
     })
 
     setStoreOptions(storeOptions);
-
   }
 
   useEffect(() => {
     getStores()
   }, [defaultStoreId]);
 
-  useEffect(() => {
-    const getPromotion = async () => {
-      setPromotionId(parseInt(params.id as string));
-      const resp = await promotionAPI.getById(session?.user?.token as string, parseInt(params.id as string));
-      if (resp) {
-        setTitle(resp.title);
-        setDescription(resp.description);
-        setColor(resp.color);
-        setExpiredAt(moment(resp.expired_at).format("YYYY-MM-DD"));
-        setImageName(resp.image.split("/").pop() as string);
-        setDefaultStoreId(resp.store_id);
-        setPromotionItems(resp.promotion_item as PromotionItem[]);
-        setPromotionId(resp.id);
-      }
+  
+  const getPromotion = async () => {
+    setPromotionId(parseInt(params.id as string));
+    const resp = await promotionAPI.getById(session?.user?.token as string, parseInt(params.id as string));
+    if (resp) {
+      setTitle(resp.title);
+      setDescription(resp.description);
+      setColor(resp.color);
+      setExpiredAt(moment(resp.expired_at).format("YYYY-MM-DD"));
+      setImageName(resp.image.split("/").pop() as string);
+      setDefaultStoreId(resp.store_id);
+      setPromotionItems(resp.promotion_item as PromotionItem[]);
+      setPromotionId(resp.id);
     }
+  }
+
+  const getPromotionItems = async () => {
+    try {
+      console.log("promotion id", promotionId)
+      const token = session?.user?.token as string
+      const resp = await promotionItemAPI.getPromotionItemsByPromotionID(token, {
+        promotion_id: parseInt(params.id as string),
+        page: metaData.current_page,
+        page_size: metaData.page_size,
+      })
+      setPromotionItems(resp.data)
+      setMetaData(resp.meta)
+      console.log("promotion items", promotionItems)
+    } catch (error) {
+      alert("Failed to get promotion items")
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
     if (params.id) {
       getPromotion();
+      getPromotionItems();
     }
   }, [params.id]);
 
@@ -261,7 +290,31 @@ const Promotion = () => {
               Add promotion item
           </button>
           <div>
-            <TablePromotionItem promotionID={promotionId}/>
+            <TablePromotionItem 
+              promotionItems={promotionItems} 
+              setPromotionItems={setPromotionItems}
+              meta={metaData}
+              nextFn={() => {
+                if (metaData.current_page < metaData.total_page) {
+                  setMetaData((prev) => {
+                    return {
+                      ...prev,
+                      current_page: prev.current_page + 1
+                    }
+                  })
+                }
+              }}
+              prevFn={() => {
+                if (metaData.current_page > 1) {
+                  setMetaData((prev) => {
+                    return {
+                      ...prev,
+                      current_page: prev.current_page - 1
+                    }
+                  })
+                }
+              }}
+            />
           </div>
       </div>
     </>
