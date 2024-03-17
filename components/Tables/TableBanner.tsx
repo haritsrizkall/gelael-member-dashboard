@@ -2,7 +2,9 @@ import bannerAPI from "@/api/banner";
 import { Banner } from "@/types/banner";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useState } from "react";
 import { FaEdit } from "react-icons/fa";
+import DeleteConfirmationModal from "../Modals/DeleteConfirmationModal";
 
 const columns = [
   {
@@ -29,20 +31,38 @@ const columns = [
 
 interface TableBannerProps {
   banners: Banner[]
+  setBanners: (banners: Banner[]) => void
 }
 
-const TableBanner = ({banners}: TableBannerProps) => {
-  const { data: session, status } = useSession()
-  const handleDelete = async (bannerId: number) => {
+const TableBanner = ({banners, setBanners}: TableBannerProps) => {
+  const [bannerId, setBannerId] = useState<number>(0)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [deleteModal, setDeleteModal] = useState<boolean>(false)
+  const { data: session } = useSession()
+
+  const handleDelete = async () => {
     try {
-      const resp = await bannerAPI.delete(session?.user?.token as string, bannerId)
-      // refresh page
-      location.reload()
+      setLoading(true)
+      await bannerAPI.delete(session?.user?.token as string, bannerId)
+      const newBanners = banners.filter(banner => banner.banner_id !== bannerId)
+      setBanners(newBanners)
+      alert("Delete success")
+      setDeleteModal(false)
     } catch (error) {
+      console.log(error)
       alert("Delete failed")
+    }finally {
+      setLoading(false)
     }
   }
   return (
+    <>
+    <DeleteConfirmationModal
+      isOpen={deleteModal}
+      onClose={() => setDeleteModal(false)}
+      onDelete={handleDelete}
+      loading={loading}
+    />
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
       <div className="max-w-full overflow-x-auto">
         <table className="w-full table-auto">
@@ -77,7 +97,10 @@ const TableBanner = ({banners}: TableBannerProps) => {
                   </p>
                 </td><td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
-                    <button className="hover:text-primary" onClick={() => handleDelete(banner.banner_id)}>
+                    <button className="hover:text-primary" onClick={() => {
+                      setBannerId(banner.banner_id)
+                      setDeleteModal(true)
+                    }}>
                       <svg
                         className="fill-current"
                         width="18"
@@ -117,6 +140,7 @@ const TableBanner = ({banners}: TableBannerProps) => {
         </table>
       </div>
     </div>
+    </>
   )
 }
 

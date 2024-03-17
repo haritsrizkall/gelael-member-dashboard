@@ -5,11 +5,10 @@ import moment from "moment"
 import Image from "next/image"
 import recipeAPI from "@/api/recipe"
 import { useSession } from "next-auth/react"
-import AddRecipeModal from "../Modals/AddRecipeModal"
 import { useState } from "react"
-import Link from "next/link"
 import { FaEdit } from "react-icons/fa"
 import EditRecipeModal from "../Modals/EditRecipeModal"
+import DeleteConfirmationModal from "../Modals/DeleteConfirmationModal"
 
 const columns = [
   {
@@ -58,25 +57,40 @@ const TableRecipe = ({recipes, setRecipes, meta, nextFn, prevFn, query, setQuery
     created_at: "",
     updated_at: ""
   })
-  const { data: session, status } = useSession()
+  const [recipeId, setRecipeId] = useState<number>(0)
+  const [deleteModal, setDeleteModal] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false)
   
-  const handleDelete = async (id: number) => {
+  const { data: session } = useSession()
+  
+  const handleDelete = async () => {
     try {
       // Handle delete recipe
+      setLoading(true)
       const token = session?.user?.token as string
-      const resp = await recipeAPI.delete(token, id)
+      await recipeAPI.delete(token, recipeId)
       
-      const newRecipe = recipes.filter((recipe) => recipe.recipe_id !== id)
+      const newRecipe = recipes.filter((recipe) => recipe.recipe_id !== recipeId)
       setRecipes(newRecipe)
 
       alert("Recipe deleted")
+      setDeleteModal(false)
+      setRecipeId(0)
     } catch (error) {
       console.log(error)
       alert("Failed to delete recipe")
+    }finally {
+      setLoading(false)
     }
   } 
   return (
     <>
+    <DeleteConfirmationModal
+      isOpen={deleteModal}
+      onClose={() => setDeleteModal(false)}
+      onDelete={handleDelete}
+      loading={loading}
+    />
     <EditRecipeModal
       isOpen={editMode}
       onClose={() => setEditMode(false)}
@@ -109,8 +123,8 @@ const TableRecipe = ({recipes, setRecipes, meta, nextFn, prevFn, query, setQuery
           </tr>
         </thead>
         <tbody>
-          {recipes && recipes.map((recipe: Recipe, key) => (
-            <tr key={key}>
+          {recipes?.map((recipe: Recipe, key) => (
+            <tr key={recipe.recipe_id}>
               <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
                 <p className="text-black dark:text-white">
                   {meta.current_page * meta.page_size - meta.page_size + key + 1}
@@ -142,7 +156,10 @@ const TableRecipe = ({recipes, setRecipes, meta, nextFn, prevFn, query, setQuery
               </td>
               <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <div className="flex items-center space-x-3.5">
-                <button className="hover:text-primary" onClick={() => handleDelete(recipe.recipe_id)}>
+                <button className="hover:text-primary" onClick={() => {
+                  setRecipeId(recipe.recipe_id)
+                  setDeleteModal(true)
+                }}>
                   <svg
                     className="fill-current"
                     width="18"

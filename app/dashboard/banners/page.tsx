@@ -31,7 +31,7 @@ const Banners = () => {
               Add Banner
           </button>
         </Link>
-        <TableBanner banners={banners} />
+        <TableBanner banners={banners} setBanners={setBanners} />
     </>
   )
 }

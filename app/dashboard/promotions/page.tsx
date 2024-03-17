@@ -24,7 +24,6 @@ const Promotion = () => {
       page_size: metaData.page_size,
       q: q
     })
-    console.log("PROMOTIONS", resp)
     setPromotions(resp.data)
     setMetaData(resp.meta)
   }
@@ -43,6 +42,7 @@ const Promotion = () => {
       </Link>
       <TablePromotion 
         promotions={promotions}
+        setPromotions={setPromotions}
         setQuery={setQuery}
         query={query}
         meta={metaData}

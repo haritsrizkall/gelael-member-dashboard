@@ -10,6 +10,9 @@ import Link from "next/link";
 import EditPromotionItemModal from "../Modals/EditPromotionModal";
 import { Meta } from "@/types/meta";
 import Pagination from "../Pagination";
+import DeleteConfirmationModal from "../Modals/DeleteConfirmationModal";
+import { useState } from "react";
+import { set } from "lodash";
 
 const columns = [
   {
@@ -57,21 +60,32 @@ interface TablePromotionProps {
   prevFn: () => void
   query: string
   setQuery: (query: string) => void
+  setPromotions: (promotions: PromotionWithStoreName[]) => void
 }  
 
-const TablePromotion = ({promotions, meta, nextFn, prevFn, query, setQuery}: TablePromotionProps) => {
-  const { data: session, status } = useSession();
-  const handleDelete = async (promotionId: number) => {
+const TablePromotion = ({promotions, setPromotions, meta, nextFn, prevFn, query, setQuery}: TablePromotionProps) => {
+  const [deleteModal, setDeleteModal] = useState<boolean>(false)
+  const [promotionId, setPromotionId] = useState<number>(0)
+  const [loading, setLoading] = useState<boolean>(false)
+  const { data: session } = useSession();
+  const handleDelete = async () => {
     try {
-      const resp = await promotionAPI.deletePromotion(session?.user?.token as string, promotionId)
-      // refresh page
-      location.reload()
+      setLoading(true)
+      await promotionAPI.deletePromotion(session?.user?.token as string, promotionId)
+      const newPromotions = promotions.filter(promotion => promotion.id !== promotionId)
+      setPromotions(newPromotions)
+      setDeleteModal(false)
+      alert("Delete success")
     } catch (error) {
+      console.log(error)
       alert("Delete failed")
+    }finally {
+      setLoading(false)
     }
   }
   return (
     <>
+    <DeleteConfirmationModal onDelete={handleDelete} onClose={() => setDeleteModal(false)} isOpen={deleteModal} loading={loading} />
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
     <div className="max-w-full overflow-x-auto">
       <table className="w-full table-auto">
@@ -139,7 +153,10 @@ const TablePromotion = ({promotions, meta, nextFn, prevFn, query, setQuery}: Tab
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <div className="flex items-center space-x-3.5">
-                <button className="hover:text-primary" onClick={() => handleDelete(promotion.id)}>
+                <button className="hover:text-primary" onClick={() => {
+                  setDeleteModal(true)
+                  setPromotionId(promotion.id)
+                }}>
                   <svg
                     className="fill-current"
                     width="18"
