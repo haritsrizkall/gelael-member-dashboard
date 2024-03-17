@@ -4,6 +4,7 @@ import memberAPI from "@/api/member";
 import uploadAPI from "@/api/upload";
 import voucherAPI, { InputSetVoucherMembers } from "@/api/voucher";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb"
+import ErrorText from "@/components/ErrorText";
 import CreateVoucherMemberModal from "@/components/Modals/CreateVoucherMemberModal";
 import TableVoucherMember from "@/components/Tables/TableVoucherMember";
 import { Voucher, VoucherStats, defaultVoucher, defaultVoucherStats } from "@/types/voucher";
@@ -14,7 +15,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import AsyncSelect from 'react-select/async';
+import { z } from "zod";
 
 const Members = () => {
   const [editMode, setEditMode] = useState<boolean>(false);
@@ -24,7 +25,25 @@ const Members = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [voucherMembers, setVoucherMembers] = useState<VoucherMemberWithNameAndEmail[]>([]);
   const [giveMode, setGiveMode] = useState<boolean>(false);
-  const { data: session, status } = useSession();
+  const [formError, setFormError] = useState({
+    title: "",
+    description: "",
+    image: "",
+    expiredAt: "",
+    startAt: ""
+  });
+
+  const cleanErrorForm = () => {
+    setFormError({
+      title: "",
+      description: "",
+      image: "",
+      expiredAt: "",
+      startAt: ""
+    });
+  }
+
+  const { data: session } = useSession();
   const params = useParams();
 
   const getVoucherDetail = async () => {
@@ -54,9 +73,29 @@ const Members = () => {
     }
   }
 
+  const editVoucherSchema = z.object({
+    id: z.number(),
+    title: z.string().min(1),
+    description: z.string().min(1),
+    image: z.string(),
+    expired_at: z.coerce.date().refine((date) => {
+      const today = moment().startOf("day").toDate();
+      return date >= today;
+    }, {
+      message: "Expired date must be greater or equal than today"
+    }),
+    start_at: z.coerce.date().refine((date) => {
+      const today = moment().startOf("day").toDate();
+      return date >= today;
+    }, {
+      message: "Start date must be greater or equal than today"
+    })
+  });
+
   const handleEdit = async () => {
     try {
       setLoading(true);
+      cleanErrorForm();
       const token = session?.user?.token as string;
       const input = {
         id: voucher.id,
@@ -66,6 +105,22 @@ const Members = () => {
         expired_at: new Date(voucher.expired_at),
         start_at: new Date(voucher.start_at),
       }
+
+      const result = editVoucherSchema.safeParse(input);
+      if (!result.success) {
+        const errors = result.error.format();
+        console.log("Errors ", errors);
+        setFormError({
+          title: errors?.title?._errors[0]!,
+          description: errors?.description?._errors[0]!,
+          image: errors?.image?._errors[0]!,
+          expiredAt: errors?.expired_at?._errors[0]!,
+          startAt: errors?.start_at?._errors[0]!
+        });
+        setLoading(false);
+        return;
+      }
+
       if (image == undefined) {
         const resp = await voucherAPI.updateVoucher(token, input);
       }else {
@@ -76,6 +131,7 @@ const Members = () => {
         setImage(undefined);
       }
       setEditMode(false);
+      cleanErrorForm();
       alert("Voucher updated successfully");
     } catch (error) {
       console.log("error", error);
@@ -168,6 +224,7 @@ const Members = () => {
                     placeholder="title"
                     className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
+                  <ErrorText>{formError.title}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -183,6 +240,7 @@ const Members = () => {
                       placeholder="description"
                       className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
+                    <ErrorText>{formError.description}</ErrorText>
                 </div>
 
 
@@ -197,6 +255,7 @@ const Members = () => {
                     type="file"
                     className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
                   />  
+                  <ErrorText>{formError.image}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">
@@ -229,22 +288,6 @@ const Members = () => {
 
                 <div className="mb-4.5">
                   <label className="mb-2.5 block text-black dark:text-white">
-                    Expired at
-                  </label>
-                  <div className="relative">
-                    <input
-                      required
-                      disabled={!editMode}
-                      onChange={(e) => setVoucher({...voucher, expired_at: e.target.value})}
-                      value={voucher?.expired_at}
-                      type="date"
-                      className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-4.5">
-                  <label className="mb-2.5 block text-black dark:text-white">
                     Start at
                   </label>
                   <div className="relative">
@@ -256,6 +299,24 @@ const Members = () => {
                       type="date"
                       className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
+                    <ErrorText>{formError.startAt}</ErrorText>
+                  </div>
+                </div>
+
+                <div className="mb-4.5">
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    Expired at
+                  </label>
+                  <div className="relative">
+                    <input
+                      required
+                      disabled={!editMode}
+                      onChange={(e) => setVoucher({...voucher, expired_at: e.target.value})}
+                      value={voucher?.expired_at}
+                      type="date"
+                      className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                    />
+                    <ErrorText>{formError.expiredAt}</ErrorText>
                   </div>
                 </div>
               </div>

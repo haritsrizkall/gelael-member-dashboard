@@ -108,10 +108,12 @@ const AddPromotion = () => {
       }
 
       if (!image) {
-        setErrorForm({
-          ...errorForm,
-          image: "Image is required"
-        });
+        setErrorForm((prev) => {
+          return {
+            ...prev,
+            image: "Image is required"
+          }
+        })
         setLoading(false);
         return;
       }

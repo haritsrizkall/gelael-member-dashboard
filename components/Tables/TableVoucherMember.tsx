@@ -34,7 +34,7 @@ const columns = [
     "width": "50px"
   },
   {
-    "title": "used At Store",
+    "title": "Used At Store",
     "width": "50px"
   }
 ]

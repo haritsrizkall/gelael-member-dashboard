@@ -6,6 +6,9 @@ import Button from "@/components/Button";
 import { useSession } from "next-auth/react";
 import uploadAPI from "@/api/upload";
 import voucherAPI from "@/api/voucher";
+import { z } from "zod";
+import ErrorText from "@/components/ErrorText";
+import moment from "moment";
 
 const AddVoucher = () => {
   const [title, setTitle] = useState("");
@@ -23,9 +26,55 @@ const AddVoucher = () => {
   const [image, setImage] = useState<File | undefined>(undefined);
   const { data: session } = useSession()
 
+  const [formError, setFormError] = useState({
+    title: "",
+    description: "",
+    type: "",
+    amount: "",
+    expired_at: "",
+    start_at: "",
+    count: "",
+    image: ""
+  });
+
+  const createVoucherSchema = z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    type: z.string(),
+    amount: z.number().min(1),
+    expired_at: z.coerce.date().refine((date) => date > new Date(), {
+      message: "Expired date must be greater than today"
+    }),
+    start_at: z.coerce.date().refine((date) => {
+      const today = moment().startOf("day").toDate()
+      return date >= today
+    }, {
+      message: "Start date must be greater or equal than today"
+    }),
+    count: z.number().min(0),
+    image: z.string()
+  });
+
+  const cleanErrorForm = () => {
+    setFormError((prev) => {
+      return {
+        ...prev,
+        title: "",
+        description: "",
+        type: "",
+        amount: "",
+        expired_at: "",
+        start_at: "",
+        count: "",
+        image: ""
+      }
+    });
+  }
+
   const handleSubmit = async () => {
     try {
       setLoading(true)
+      cleanErrorForm()
       const input = {
         title,
         description,
@@ -33,9 +82,39 @@ const AddVoucher = () => {
         amount: parseInt(amount),
         expired_at: new Date(expired_at),
         start_at: new Date(start_at),
-        count
+        count,
+        image: "",
       }
 
+      const result = createVoucherSchema.safeParse(input)
+      if (!result.success) {
+        const errors = result.error.format()
+        console.log("Errors ", errors)
+        setFormError({
+          title: errors?.title?._errors[0]!,
+          description: errors?.description?._errors[0]!,
+          type: errors?.type?._errors[0]!,
+          amount: errors?.amount?._errors[0]!,
+          expired_at: errors?.expired_at?._errors[0]!,
+          start_at: errors?.start_at?._errors[0]!,
+          count: errors?.count?._errors[0]!,
+          image: errors?.image?._errors[0]!
+        })
+        setLoading(false)
+        return
+      }
+
+      if (!image) {
+        setFormError((prev) => {
+          return {
+            ...prev,
+            image: "Image is required"
+          }
+        })
+        setLoading(false)
+        return
+      }
+    
       const token = session?.user?.token as string
       const resp = await uploadAPI.upload(token, {file: image as File})
 
@@ -49,6 +128,7 @@ const AddVoucher = () => {
 
       alert("Voucher successfully created!")
 
+      cleanErrorForm()
       setTitle("")
       setDescription("")
       setExpiredAt("")
@@ -58,6 +138,7 @@ const AddVoucher = () => {
       setImage(undefined)
     }catch (e) {
       console.log(e)
+      setLoading(false)
       alert("Failed to create voucher")
     }finally {
       setLoading(false)
@@ -85,6 +166,7 @@ const AddVoucher = () => {
               placeholder="title"
               className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
             />
+            <ErrorText>{formError.title}</ErrorText>
           </div>
 
           <div className="mb-4.5">
@@ -99,6 +181,7 @@ const AddVoucher = () => {
                 placeholder="description"
                 className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              <ErrorText>{formError.description}</ErrorText>
           </div>
 
           <div className="mb-4.5">
@@ -111,6 +194,7 @@ const AddVoucher = () => {
               type="file"
               className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
             />  
+            <ErrorText>{formError.image}</ErrorText>
           </div>
 
           <div className="mb-4.5">
@@ -122,6 +206,7 @@ const AddVoucher = () => {
               value={selectedType}
               onChange={(e) => setSelectedType(e as {label: string, value: string})}
             />
+            <ErrorText>{formError.type}</ErrorText>
           </div>
 
           <div className="mb-4.5">
@@ -136,6 +221,7 @@ const AddVoucher = () => {
                 placeholder="amount"
                 className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              <ErrorText>{formError.amount}</ErrorText>
           </div>
 
           {
@@ -153,6 +239,7 @@ const AddVoucher = () => {
                     placeholder="count"
                     className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
+                  <ErrorText>{formError.count}</ErrorText>
               </div>
             )
           }
@@ -169,6 +256,7 @@ const AddVoucher = () => {
                 type="date"
                 className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              <ErrorText>{formError.start_at}</ErrorText>
             </div>
           </div>
 
@@ -184,6 +272,7 @@ const AddVoucher = () => {
                 type="date"
                 className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              <ErrorText>{formError.expired_at}</ErrorText>
             </div>
           </div>
 
