@@ -4,6 +4,7 @@ import Modal, { ModalProps } from "./Modal"
 import { useSession } from "next-auth/react"
 import { Store } from "@/types/store"
 import storeImageAPI from "@/api/storeImage"
+import ErrorText from "../ErrorText"
 
 
 interface AddStoreImageModalProps extends ModalProps {
@@ -14,14 +15,24 @@ interface AddStoreImageModalProps extends ModalProps {
 const AddStoreImageModal = (props: AddStoreImageModalProps) => {
   const [image, setImage] = useState<File | undefined>(undefined)
   const [loading, setLoading] = useState(false)
+  const [errorForm, setErrorForm] = useState({
+    image: ""
+  })
   const { data: session, status } = useSession()
   
 
   const handleSubmit = async () => {
     try {
       setLoading(true)
-      console.log("IMAGE", image)
-      console.log("STORE ID", props.storeId)
+      if (image == undefined) {
+        setErrorForm((prev) => {
+          return {
+            ...prev,
+            image: "Image is required"
+          }
+        })
+        return
+      }
       const resp = await storeImageAPI.storeImage(session?.user?.token as string, {
         store_id: props.storeId,
         image: image as File
@@ -34,6 +45,9 @@ const AddStoreImageModal = (props: AddStoreImageModalProps) => {
         }
       })
       
+      setErrorForm({
+        image: ""
+      })
       alert("Store image added successfully")
       setImage(undefined)
       props.onClose()
@@ -60,6 +74,7 @@ const AddStoreImageModal = (props: AddStoreImageModalProps) => {
             type="file"
             className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
           />  
+          <ErrorText>{errorForm.image}</ErrorText>
         </div>
       </div>
       <div>

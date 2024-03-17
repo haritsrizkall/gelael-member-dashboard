@@ -7,6 +7,8 @@ import roleAPI from "../../api/role"
 import { useSession } from "next-auth/react"
 import Select from "react-select";
 import userAPI from "../../api/user"
+import { z } from "zod"
+import ErrorText from "../ErrorText"
 
 interface AddUserModal extends ModalProps{
 }
@@ -19,8 +21,23 @@ const AddUserModal = (props: AddUserModal) => {
   const [loading, setLoading] = useState(false)
   const [roleOptions, setRoleOptions] = useState<{label: string, value: number}[]>([])
   const [selectedRoles, setSelecterRoles] = useState<{label: string, value: number}[]>([]) 
+  const [errorForm, setErrorForm] = useState({
+    email: "",
+    password: "",
+    name: "",
+    roles: ""
+  })
   const { data: session } = useSession()
   
+  const cleanErrorForm = () => {
+    setErrorForm({
+      email: "",
+      password: "",
+      name: "",
+      roles: ""
+    })
+  }
+
   const getData = async () => {
     const token = session?.user?.token as string 
     const roles = await roleAPI.getRoles(token)
@@ -37,6 +54,13 @@ const AddUserModal = (props: AddUserModal) => {
     getData()
   },[])
 
+  const createUserSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+    name: z.string().min(1),
+    roles: z.array(z.number()).min(1)
+  })
+
   const handleSumbit = async () => {
     try {
       setLoading(true)
@@ -48,11 +72,26 @@ const AddUserModal = (props: AddUserModal) => {
         name,
         roles: roleIds
       }
-      const resp = await userAPI.createUser(token, user)
+
+      const result = createUserSchema.safeParse(user)
+      if (!result.success) {
+        const errors = result.error.format()
+        setErrorForm({
+          email: errors?.email?._errors[0]!,
+          password: errors?.password?._errors[0]!,
+          name: errors?.name?._errors[0]!,
+          roles: errors?.roles?._errors[0]!
+        })
+        setLoading(false)
+        return;
+      }
+
+      await userAPI.createUser(token, user)
       setEmail("")
       setPassword("")
       setName("")
       setSelecterRoles([])
+      cleanErrorForm()
       alert("User added successfully")
       props.onClose()
     }catch (error) {
@@ -80,6 +119,7 @@ const AddUserModal = (props: AddUserModal) => {
             placeholder="admin@gmail.com"
             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
+          <ErrorText>{errorForm.email}</ErrorText>
         </div>
 
         <div className="mb-4.5">
@@ -94,6 +134,7 @@ const AddUserModal = (props: AddUserModal) => {
             placeholder="password"
             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
+          <ErrorText>{errorForm.password}</ErrorText>
         </div>
 
         <div className="mb-4.5">
@@ -108,6 +149,7 @@ const AddUserModal = (props: AddUserModal) => {
             placeholder="Budi"
             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
+          <ErrorText>{errorForm.name}</ErrorText>
         </div>
     
         <div className="mb-4 5">
@@ -127,6 +169,7 @@ const AddUserModal = (props: AddUserModal) => {
             }}
             placeholder="Select Role"
           />
+          <ErrorText>{errorForm.roles}</ErrorText>
         </div>
       </div>
       <div>

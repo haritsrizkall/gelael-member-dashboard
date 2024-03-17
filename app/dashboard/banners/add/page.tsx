@@ -2,22 +2,40 @@
 import bannerAPI from "@/api/banner";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Button from "@/components/Button";
+import ErrorText from "@/components/ErrorText";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 const AddBanner = () => {
   const [image, setImage] = useState<File | undefined>(undefined);
   const [loading, setLoading] = useState(false)
-  const { data: session, status } = useSession()
+  const [errorForm, setErrorForm] = useState({
+    image: ""
+  });
+  const { data: session } = useSession()
 
   const handleSubmit = async () => {
     // Add Banner
     setLoading(true)
     try {
+      if (image == undefined) {
+        setErrorForm((prev) => {
+          return {
+            ...prev,
+            image: "Image is required"
+          }
+        })
+        setLoading(false)
+        return
+      }
+
       const token = session?.user?.token as string
       const resp = await bannerAPI.create(token, {image: image as File})
 
       alert("Banner added successfully")
+      setErrorForm({
+        image: ""
+      })
       setImage(undefined)
     } catch (error) {
       console.log("Error adding banner", error)
@@ -54,6 +72,7 @@ const AddBanner = () => {
                     type="file"
                     className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
                   />  
+                  <ErrorText>{errorForm.image}</ErrorText>
               </div>
             </div>
 

@@ -1,12 +1,15 @@
 "use client"
 import appconfAPI from "@/api/appconf";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import ErrorText from "@/components/ErrorText";
 import AddContactModal from "@/components/Modals/AddContactModal";
+import DeleteConfirmationModal from "@/components/Modals/DeleteConfirmationModal";
 import { Appconf } from "@/types/appconf";
 import { cn } from "@/utils/utils";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { MdDelete } from "react-icons/md";
+import { z } from "zod";
 
 const SocialMedia = () => {
   const [editCommon, setEditCommon] = useState(false)
@@ -27,11 +30,49 @@ const SocialMedia = () => {
     privacy_policy: "",
     terms_condition: "",
   })
-  const { data: session, status } = useSession()
+  const [errorFormSocmed, setErrorFormSocmed] = useState({
+    instagram: "",
+    tiktok: ""
+  })
+  const cleanErrorFormSocmed = () => {
+    setErrorFormSocmed({
+      instagram: "",
+      tiktok: ""
+    })
+  }
+
+  const [errorCommon, setErrorCommon] = useState({
+    slider_interval: ""
+  })
+  const cleanErrorCommon = () => {
+    setErrorCommon({
+      slider_interval: ""
+    })
+  }
+
+  const { data: session } = useSession()
   
+  const editSocmedSchema = z.object({
+    instagram: z.string().min(1),
+    tiktok: z.string().min(1)
+  })
+
   const handleEditSocmed = async () => {
     try {
+      cleanErrorFormSocmed()
       setLoadingSocmed(true)
+      
+      const result = editSocmedSchema.safeParse(appconf)
+      if (!result.success) {
+        const errors = result.error.format()
+        setErrorFormSocmed({
+          instagram: errors?.instagram?._errors[0]!,
+          tiktok: errors?.tiktok?._errors[0]!
+        })
+        setLoadingSocmed(false)
+        return
+      }
+      
       const token = session?.user?.token as string
       await appconfAPI.updateSocial(token, {
         instagram: appconf.instagram,
@@ -39,6 +80,7 @@ const SocialMedia = () => {
       })
       setLoadingSocmed(false)
       setEditSocmed(false)
+      cleanErrorFormSocmed()
       alert("Success to update social media")
     } catch (error) {
       console.log(error)
@@ -47,15 +89,32 @@ const SocialMedia = () => {
     }
   }
 
+  const editCommonSchema = z.object({
+    slider_interval: z.number().min(1)
+  })
+
   const handleEditCommon = async () => {
     try {
       setLoadingCommon(true)
+      cleanErrorCommon()
+
+      const result = editCommonSchema.safeParse(appconf)
+      if (!result.success) {
+        const errors = result.error.format()
+        setErrorCommon({
+          slider_interval: errors?.slider_interval?._errors[0]!
+        })
+        setLoadingCommon(false)
+        return
+      }
+
       const token = session?.user?.token as string
       await appconfAPI.update(token, {
         slider_interval: appconf.slider_interval
       })
       setLoadingCommon(false)
       setEditCommon(false)
+      cleanErrorCommon()
       alert("Success to update common configuration")
     } catch (error) {
       console.log(error)
@@ -165,6 +224,7 @@ const SocialMedia = () => {
                   placeholder="4"
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 />
+                <ErrorText>{errorCommon.slider_interval}</ErrorText>
               </div>
             </div>
           </div>
@@ -222,6 +282,7 @@ const SocialMedia = () => {
                   placeholder="instagram"
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 />
+                <ErrorText>{errorFormSocmed.instagram}</ErrorText>
               </div>
 
               <div className="mb-4.5">
@@ -237,6 +298,7 @@ const SocialMedia = () => {
                   placeholder="tiktok"
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 />
+                <ErrorText>{errorFormSocmed.tiktok}</ErrorText>
               </div>
             </div>
           </div>

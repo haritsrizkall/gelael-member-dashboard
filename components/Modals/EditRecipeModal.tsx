@@ -5,6 +5,8 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import uploadAPI from "@/api/upload"
 import recipeAPI from "@/api/recipe"
+import { z } from "zod"
+import ErrorText from "../ErrorText"
 
 
 interface EditRecipeModalProps extends ModalProps {
@@ -18,22 +20,54 @@ const EditRecipeModal = (props: EditRecipeModalProps) => {
   const [url, setUrl] = useState("")
   const [defaultImage, setDefaultImage] = useState<string>("" as string)
   const [loading, setLoading] = useState(false)
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
+  const [errorForm, setErrorForm] = useState({
+    title: "",
+    image: "",
+    url: ""
+  })
+
+  const cleanErrorForm = () => {
+    setErrorForm({
+      title: "",
+      image: "",
+      url: ""
+    })
+  }
 
   useEffect(() => {
     setTitle(props.recipe.title)
     setUrl(props.recipe.url)
   }, [props.recipe.recipe_id])
 
+  const editRecipeSchema = z.object({
+    title: z.string().min(1),
+    image: z.string(),
+    url: z.string().url()
+  })
+
   const handleSubmit = async () => {
-    console.log("edit recipe")
     try {
       setLoading(true)
+      cleanErrorForm()
       let input = {
         recipe_id: props.recipe.recipe_id,
         title,
         url,
         image: defaultImage.split("/").pop() as string
+      }
+
+      const result  = editRecipeSchema.safeParse(input)
+      console.log("result", result)
+      if (!result.success) {
+        const errors = result.error.format()
+        setErrorForm({
+          title: errors?.title?._errors[0]!,
+          image: errors?.image?._errors[0]!,
+          url: errors?.url?._errors[0]!
+        })
+        setLoading(false)
+        return
       }
 
       const token = session?.user?.token as string
@@ -81,6 +115,7 @@ const EditRecipeModal = (props: EditRecipeModalProps) => {
             placeholder="Ayam"
             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
+          <ErrorText>{errorForm.title}</ErrorText>
         </div>
         <div className="mb-4.5">
           <label className="mb-2.5 block text-black dark:text-white">
@@ -105,6 +140,7 @@ const EditRecipeModal = (props: EditRecipeModalProps) => {
             placeholder="https://google.com"
             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
+          <ErrorText>{errorForm.url}</ErrorText>
         </div>
       </div>
       <div>

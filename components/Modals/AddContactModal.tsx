@@ -6,6 +6,8 @@ import Button from "../Button";
 import { Appconf } from "@/types/appconf";
 import appconfAPI from "@/api/appconf";
 import { useSession } from "next-auth/react";
+import { z } from "zod";
+import ErrorText from "../ErrorText";
 
 interface AddContactModal extends ModalProps {
   onAdd: () => Promise<void>;
@@ -17,23 +19,54 @@ const AddContactModal = (props: AddContactModal) => {
   const [contactValue, setContactValue] = useState(""); 
   const [contactType, setContactType] = useState("email");
   const [loading, setLoading] = useState(false);
+  const [errorForm, setErrorForm] = useState({
+    contactValue: "",
+  });
+  const cleanErrorForm = () => {
+    setErrorForm({
+      contactValue: "",
+    });
+  }
+  const { data: session } = useSession();
+
+  const createContactSchema = z.object({
+    contactValue: z.string().min(1),
+  });
 
   const handleSubmit = async () => {
-    setLoading(true);
-    if (contactType == 'email') {
-      let newAppconf = props.contact;
-      newAppconf.contacts.emails.push(contactValue);
-      props.setContact(newAppconf);
-    }else {
-      let newAppconf = props.contact;
-      newAppconf.contacts.phones.push(contactValue);
-      props.setContact(newAppconf);
+    try {
+      setLoading(true);
+      cleanErrorForm();
+  
+      const result = createContactSchema.safeParse({ contactValue });
+      if (!result.success) {
+        const errors = result.error.format();
+        setErrorForm({
+          contactValue: errors?.contactValue?._errors[0]!,
+        });
+        setLoading(false);
+        return;
+      }
+  
+      if (contactType == 'email') {
+        let newAppconf = props.contact;
+        newAppconf.contacts.emails.push(contactValue);
+        props.setContact(newAppconf);
+      }else {
+        let newAppconf = props.contact;
+        newAppconf.contacts.phones.push(contactValue);
+        props.setContact(newAppconf);
+      }
+      await props.onAdd();
+  
+      setContactValue("");
+      setContactType("email");
+      cleanErrorForm();
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
     }
-    await props.onAdd();
-
-    setContactValue("");
-    setContactType("email");
-    setLoading(false);
   }
 
   return (
@@ -79,6 +112,7 @@ const AddContactModal = (props: AddContactModal) => {
             placeholder="contact"
             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
+          <ErrorText>{errorForm.contactValue}</ErrorText>
         </div>
       </div>
       <div>

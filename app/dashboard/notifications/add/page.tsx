@@ -10,6 +10,8 @@ import { z } from "zod";
 import Select from "react-select";
 import AsyncSelect from 'react-select/async';
 import memberAPI from "@/api/member";
+import Button from "@/components/Button";
+import ErrorText from "@/components/ErrorText";
 
 const AddNotification = () => {
   const [title, setTitle] = useState("");
@@ -19,11 +21,22 @@ const AddNotification = () => {
   const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
   const [selectedStores, setSelectedStores] = useState<{label: string, value:number}[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<{label: string, value: number}[]>([]);
-  const { data: session, status } = useSession();
+  const [loading, setLoading] = useState(false);
+  const [errorForm, setErrorForm] = useState({
+    title: "",
+    message: "",
+  });
+  const cleanErrorForm = () => {
+    setErrorForm({
+      title: "",
+      message: "",
+    });
+  }
+  const { data: session } = useSession();
 
   const createNotification = z.object({
-    title: z.string(),
-    message: z.string(),
+    title: z.string().min(1),
+    message: z.string().min(1),
     type: z.string(),
     sender_type: z.string(),
     store_ids: z.array(z.number()),
@@ -32,6 +45,8 @@ const AddNotification = () => {
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
+      cleanErrorForm();
       const storeIds = selectedStores.map(store => store.value);
       const memberIds = selectedMembers.map(member => member.value);
       const input: InputCreateNotification = {
@@ -43,7 +58,16 @@ const AddNotification = () => {
         member_ids: memberIds
       } 
 
-      createNotification.parse(input);
+      const result = createNotification.safeParse(input);
+      if (!result.success) {
+        const errors = result.error.format();
+        setErrorForm({
+          title: errors?.title?._errors[0]!,
+          message: errors?.message?._errors[0]!
+        })
+        setLoading(false);
+        return;
+      }
 
       const token = session?.user?.token as string;
       const resp = await notificationAPI.createNotification(token, input);
@@ -58,9 +82,12 @@ const AddNotification = () => {
       setSenderType(NotificationSenderType.ALL);
       setSelectedStores([]);
       setSelectedMembers([]);
+      cleanErrorForm();
     } catch (error) {
       console.log("error", error);
       alert("failed to add notification");
+    }finally {
+      setLoading(false);
     }
   }
 
@@ -120,6 +147,7 @@ const AddNotification = () => {
                 placeholder="title"
                 className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              <ErrorText>{errorForm.title}</ErrorText>
             </div>
             <div className="mb-4.5">
               <label className="mb-2.5 block text-black dark:text-white">
@@ -133,6 +161,7 @@ const AddNotification = () => {
                 placeholder="message"
                 className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              <ErrorText>{errorForm.message}</ErrorText>
             </div>
             <div className="mb-4.5">
               <label className="mb-3 block text-black dark:text-white">
@@ -198,12 +227,12 @@ const AddNotification = () => {
                 </div>
               )
             }
-            <button
+            <Button
+              isLoading={loading}
               onClick={handleSubmit}
-              className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray"
-            >
-              Add Notification
-            </button>
+              text="Add Notification"
+              className="w-full"
+            />
           </div>
         </div>  
       </div>      

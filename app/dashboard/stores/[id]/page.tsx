@@ -4,6 +4,7 @@ import storeAPI from "@/api/store";
 import storeImageAPI from "@/api/storeImage";
 import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import ErrorText from "@/components/ErrorText";
 import AddStoreImageModal from "@/components/Modals/AddStoreImageModal";
 import Loader from "@/components/common/Loader";
 import { Store, StoreImage } from "@/types/store";
@@ -13,6 +14,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TiDelete } from "react-icons/ti";
+import { z } from "zod";
 
 const Store = () => {
   const [store, setStore] = useState<Store>({} as Store)
@@ -26,8 +28,34 @@ const Store = () => {
   const [dutyManager1Image, setDutyManager1Image] = useState<File | undefined>(undefined)
   const [dutyManager2Image, setDutyManager2Image] = useState<File | undefined>(undefined)
 
+  const [errorFormDetail, setErrorFormDetail] = useState({
+    name: "",
+    address: "",
+    phone_number: ""
+  })
+  const cleanErrorFormDetail = () => {
+    setErrorFormDetail({
+      name: "",
+      address: "",
+      phone_number: ""
+    })
+  }
+
+  const [errorFormManager, setErrorFormManager] = useState({
+    store_manager: "",
+    duty_manager_1: "",
+    duty_manager_2: ""
+  })
+  const cleanErrorFormManager = () => {
+    setErrorFormManager({
+      store_manager: "",
+      duty_manager_1: "",
+      duty_manager_2: ""
+    })
+  }
+
   const params = useParams();
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
 
   const getStore = async () => {
     // fetch store by id
@@ -48,7 +76,7 @@ const Store = () => {
     try {
       const token = session?.user?.token as string
       setDeletingId(id)
-      const response = await storeImageAPI.delete(token, id)
+      await storeImageAPI.delete(token, id)
       const newStoreImages = store?.store_images?.filter((image) => image.store_image_id !== id)
       setStore({...store, store_images: newStoreImages})
       setDeletingId(0)
@@ -59,9 +87,16 @@ const Store = () => {
     }
   }
 
+  const editManagerSchema = z.object({
+    store_manager: z.string().min(1),
+    duty_manager_1: z.string().min(1),
+    duty_manager_2: z.string().min(1)
+  })
+
   const handleUpdateManagerImage = async () => {
     try {
       setLoadingEditManager(true)
+      cleanErrorFormManager()
       const token = session?.user?.token as string
       let input = {
         id: store.store_id,
@@ -74,6 +109,18 @@ const Store = () => {
         duty_manager_1_image: store.duty_manager_1_image.split("/").pop() as string,
         duty_manager_2: store.duty_manager_2,
         duty_manager_2_image: store.duty_manager_2_image.split("/").pop() as string
+      }
+
+      const result = editManagerSchema.safeParse(input)
+      if (!result.success) {
+        const errors = result.error.format()
+        setErrorFormManager({
+          store_manager: errors?.store_manager?._errors[0]!,
+          duty_manager_1: errors?.duty_manager_1?._errors[0]!,
+          duty_manager_2: errors?.duty_manager_2?._errors[0]!
+        }) 
+        setLoadingEditManager(false)
+        return
       }
 
       if (storeManagerImage !== undefined) {
@@ -104,6 +151,7 @@ const Store = () => {
 
       setStore(newStore)
       setEditModeManager(false)
+      cleanErrorFormManager()
       alert("Success update store")
     }catch (error) {
       alert("Failed to update store")
@@ -113,9 +161,16 @@ const Store = () => {
     }
   }
 
+  const editStoreDetailSchema = z.object({
+    name: z.string().min(1),
+    address: z.string().min(1),
+    phone_number: z.string().min(10).max(13),
+  })
+
   const handleEditDetail = async () => {
     try {
       setLoadingDetail(true)
+      cleanErrorFormDetail()
       const token = session?.user?.token as string
       const input = {
         id: store.store_id,
@@ -129,6 +184,19 @@ const Store = () => {
         duty_manager_2: store.duty_manager_2,
         duty_manager_2_image: store.duty_manager_2_image.split("/").pop() as string
       }
+
+      const result = editStoreDetailSchema.safeParse(input)
+      if (!result.success) {
+        const errors = result.error.format()
+        setErrorFormDetail({
+          name: errors?.name?._errors[0]!,
+          address: errors?.address?._errors[0]!,
+          phone_number: errors?.phone_number?._errors[0]!
+        }) 
+        setLoadingDetail(false)
+        return
+      }
+
       const response = await storeAPI.updateStore(token, input)
       const newStore = {
         ...store,
@@ -177,7 +245,7 @@ const Store = () => {
       <div className="p-6.5">
         <div className="mb-4.5">
           <label className="mb-2.5 block text-black dark:text-white">
-            Title
+            Name
           </label>
           <input
             required
@@ -188,6 +256,7 @@ const Store = () => {
             placeholder="Gelael MT"
             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
+          <ErrorText>{errorFormDetail.name}</ErrorText>
         </div>
         <div className="mb-4.5">
           <label className="mb-2.5 block text-black dark:text-white">
@@ -201,6 +270,7 @@ const Store = () => {
             placeholder="Gelael MT"
             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
+          <ErrorText>{errorFormDetail.address}</ErrorText>
         </div>
         <div className="mb-4.5">
           <label className="mb-2.5 block text-black dark:text-white">
@@ -215,6 +285,7 @@ const Store = () => {
             placeholder="Gelael MT"
             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
+          <ErrorText>{errorFormDetail.phone_number}</ErrorText>
         </div>
       </div>
 
@@ -280,9 +351,10 @@ const Store = () => {
                   type="text"
                   value={store?.store_manager}
                   onChange={(e) =>  setStore({...store, store_manager: e.target.value})}
-                  placeholder="Gelael MT"
+                  placeholder="Budi"
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 />
+                <ErrorText>{errorFormManager.store_manager}</ErrorText>
               </div>
               <div className="mb-4.5">
                 <label className="mb-2.5 block text-black dark:text-white">
@@ -321,9 +393,10 @@ const Store = () => {
                 disabled={!editModeManager}
                 value={store?.duty_manager_1}
                 onChange={(e) =>  setStore({...store, duty_manager_1: e.target.value})}
-                placeholder="Gelael MT"
+                placeholder="Budi"
                 className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              <ErrorText>{errorFormManager.duty_manager_1}</ErrorText>
             </div>
               <div className="mb-4.5">
                 <label className="mb-2.5 block text-black dark:text-white">
@@ -361,9 +434,10 @@ const Store = () => {
                 disabled={!editModeManager}
                 value={store?.duty_manager_2}
                 onChange={(e) =>  setStore({...store, duty_manager_2: e.target.value})}
-                placeholder="Gelael MT"
+                placeholder="Budi"
                 className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              <ErrorText>{errorFormManager.duty_manager_2}</ErrorText>
             </div>
             <div className="mb-4.5">
               <label className="mb-2.5 block text-black dark:text-white">
