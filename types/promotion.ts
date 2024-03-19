@@ -9,6 +9,7 @@ export type Promotion = {
 	updated_at: string;
 	promotion_item?: any[] | null;
 	store_id: number;
+	start_at: string;
 };
 
 export type PromotionWithStoreName = {
@@ -23,4 +24,5 @@ export type PromotionWithStoreName = {
 	promotion_items?: any[] | null;
 	store_id: number;
 	store_name: string;
+	start_at: string;
 };

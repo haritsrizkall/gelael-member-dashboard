@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Button from "@/components/Button";
 import ErrorText from "@/components/ErrorText";
 import { StoreList } from "@/types/store";
+import moment from "moment";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Select from "react-select";
@@ -18,6 +19,7 @@ const AddPromotion = () => {
   const [image, setImage] = useState<File | undefined>(undefined);
   const [color, setColor] = useState("#ffffff");
   const [expiredAt, setExpiredAt] = useState("");
+  const [startAt, setStartAt] = useState("");
   const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
   const [loading, setLoading] = useState(false);
   const [selectedStore, setSelectedStores] = useState<{label: string, value: number}>({
@@ -30,7 +32,8 @@ const AddPromotion = () => {
     image: "",
     color: "",
     expiredAt: "",
-    store_id: ""
+    store_id: "",
+    startAt: ""
   });
   const { data: session } = useSession() 
 
@@ -41,7 +44,8 @@ const AddPromotion = () => {
       image: "",
       color: "",
       expiredAt: "",
-      store_id: ""
+      store_id: "",
+      startAt: ""
     });
   }
 
@@ -67,8 +71,15 @@ const AddPromotion = () => {
     description: z.string().min(1),
     image: z.string(),
     color: z.string(),
+    start_at: z.coerce.date().refine((data) => {
+      const today = moment().startOf('day').toDate();
+      return data >= today;
+      }, {
+      message: "Start at must be greater or equal than today"
+    }),
     expired_at: z.coerce.date().refine((data) => {
-      return data > new Date();
+      const today = moment().startOf('day').toDate();
+      return data > today;
       }, {
       message: "Expired at must be greater than today"
     }),
@@ -88,6 +99,7 @@ const AddPromotion = () => {
         image: "",
         color,
         expired_at: new Date(expiredAt),
+        start_at: new Date(startAt),
         store_id: selectedStore.value
       }
       const result = createPromotionSchema.safeParse(input);
@@ -101,7 +113,8 @@ const AddPromotion = () => {
           image: errors?.image?._errors[0]!,
           color: errors?.color?._errors[0]!,
           expiredAt: errors?.expired_at?._errors[0]!,
-          store_id: errors?.store_id?._errors[0]!
+          store_id: errors?.store_id?._errors[0]!,
+          startAt: errors?.start_at?._errors[0]!
         })
         setLoading(false);
         return;
@@ -127,7 +140,8 @@ const AddPromotion = () => {
         image: resp.data.filename.split("/").pop() as string,
         color,
         expired_at: new Date(expiredAt),
-        store_id: selectedStore.value
+        store_id: selectedStore.value,
+        start_at: new Date(startAt)
       });
   
       if (respPromotion) {
@@ -138,6 +152,7 @@ const AddPromotion = () => {
       setDescription("");
       setImage(undefined);
       setColor("#ffffff");
+      setStartAt("");
       setExpiredAt("");
       cleanErrorForm();
     }catch (error) {
@@ -230,6 +245,22 @@ const AddPromotion = () => {
                     placeholder="#FFFFF"
                   />
                   <ErrorText>{errorForm.color}</ErrorText>
+                </div>
+
+                <div className="mb-4.5">
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    Start at
+                  </label>
+                  <div className="relative">
+                    <input
+                      required
+                      onChange={(e) => setStartAt(e.target.value)}
+                      value={startAt}
+                      type="date"
+                      className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                    />
+                    <ErrorText>{errorForm.startAt}</ErrorText>
+                  </div>
                 </div>
 
                 <div className="mb-4.5">

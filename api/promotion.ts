@@ -32,6 +32,7 @@ export type InputCreatePromotion = {
   description: string;
   image: string;
   color: string;
+  start_at: Date;
   expired_at: Date;
   store_id: number;
 }
@@ -42,6 +43,7 @@ export type InputUpdatePromotion = {
   description: string;
   image: string;
   color: string;
+  start_at: Date;
   expired_at: Date;
   store_id: number;
 }

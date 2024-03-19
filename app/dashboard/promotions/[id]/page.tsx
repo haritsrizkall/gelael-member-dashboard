@@ -22,6 +22,7 @@ const Promotion = () => {
   const [image, setImage] = useState<File | undefined>(undefined);
   const [imageName, setImageName] = useState<string>("");
   const [color, setColor] = useState("#ffffff");
+  const [startAt, setStartAt] = useState<string>("");
   const [expiredAt, setExpiredAt] = useState<string>("");
   const [defaultStoreId, setDefaultStoreId] = useState<number>(0);
   const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
@@ -38,7 +39,8 @@ const Promotion = () => {
     image: "",
     color: "",
     expiredAt: "",
-    store_id: ""
+    store_id: "",
+    start_at: ""
   });
   const cleanErrorForm = () => {
     setErrorForm({
@@ -47,7 +49,8 @@ const Promotion = () => {
       image: "",
       color: "",
       expiredAt: "",
-      store_id: ""
+      store_id: "",
+      start_at: ""
     });
   }
 
@@ -97,6 +100,7 @@ const Promotion = () => {
       setDefaultStoreId(resp.store_id);
       setPromotionItems(resp.promotion_item as PromotionItem[]);
       setPromotionId(resp.id);
+      setStartAt(moment(resp.start_at).format("YYYY-MM-DD"));
     }
   }
 
@@ -130,6 +134,12 @@ const Promotion = () => {
     description: z.string().min(1),
     image: z.string(),
     color: z.string(),
+    start_at: z.coerce.date().refine((data) => {
+      const today = moment().startOf('day').toDate();
+      return data >= today;
+      }, {
+      message: "Start at must be greater or equal than today"
+    }),
     expired_at: z.coerce.date().refine((data) => {
       return data > new Date();
       }, {
@@ -149,7 +159,8 @@ const Promotion = () => {
         image: "",
         color,
         expired_at: new Date(expiredAt),
-        store_id: selectedStore.value
+        store_id: selectedStore.value,
+        start_at: new Date(startAt)
       }
       const result = createPromotionSchema.safeParse(input);
       console.log("Result ", result);
@@ -161,7 +172,8 @@ const Promotion = () => {
           image: errors?.image?._errors[0]!,
           color: errors?.color?._errors[0]!,
           expiredAt: errors?.expired_at?._errors[0]!,
-          store_id: errors?.store_id?._errors[0]!
+          store_id: errors?.store_id?._errors[0]!,
+          start_at: errors?.start_at?._errors[0]!
         })
         setLoading(false);
         return;
@@ -177,7 +189,8 @@ const Promotion = () => {
           image: imageName,
           color,
           expired_at: new Date(expiredAt),
-          store_id: selectedStore.value
+          store_id: selectedStore.value,
+          start_at: new Date(startAt)
         });
 
         
@@ -193,7 +206,8 @@ const Promotion = () => {
           image: resp.data.filename.split("/").pop() as string,
           color,
           expired_at: new Date(expiredAt),
-          store_id: selectedStore.value
+          store_id: selectedStore.value,
+          start_at: new Date(startAt)
         });
         
         if (respPromotion) {
@@ -302,6 +316,22 @@ const Promotion = () => {
                     placeholder="#FFFFF"
                   />
                   <ErrorText>{errorForm.color}</ErrorText>
+                </div>
+
+                <div className="mb-4.5">
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    Start at
+                  </label>
+                  <div className="relative">
+                    <input
+                      required
+                      onChange={(e) => setStartAt(e.target.value)}
+                      value={startAt}
+                      type="date"
+                      className="custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                    />
+                    <ErrorText>{errorForm.start_at}</ErrorText>
+                  </div>
                 </div>
 
                 <div className="mb-4.5">
