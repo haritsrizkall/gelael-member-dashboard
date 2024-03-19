@@ -28,6 +28,10 @@ const columns = [
     width: "50px"
   },
   {
+    title: "Birth Date",
+    width: "50px"
+  },
+  {
     title: "Created At",
     width: "50px"
   },
@@ -44,7 +48,6 @@ interface TableMemberProps {
 
 const TableMember = ({members, meta, nextFn, prevFn, query, setQuery}: TableMemberProps) => {
   return (
-    <>
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
     {/* Search bar */}
     <div className="flex justify-between items-center mb-4">
@@ -71,8 +74,8 @@ const TableMember = ({members, meta, nextFn, prevFn, query, setQuery}: TableMemb
           </tr>
         </thead>
         <tbody>
-          {members && members.map((member: MemberWithStoreName, key) => (
-            <tr key={key}>
+          {members?.map((member: MemberWithStoreName, key) => (
+            <tr key={member.id}>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
               <p className="text-black dark:text-white">
                 {key + 1 + (meta.current_page - 1) * meta.page_size}
@@ -104,6 +107,11 @@ const TableMember = ({members, meta, nextFn, prevFn, query, setQuery}: TableMemb
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
+                {moment(member.birth_date).format("DD MMM YYYY")}
+              </p>
+            </td>
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <p className="text-black dark:text-white">
                 {moment(member.created_at).format("DD MMM YYYY")}
               </p>
             </td>
@@ -122,7 +130,6 @@ const TableMember = ({members, meta, nextFn, prevFn, query, setQuery}: TableMemb
       />
     </div>
     </div>
-    </>
   )
 }
 

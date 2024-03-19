@@ -13,6 +13,7 @@ export type Member = {
   avatar: string;
   created_at: string;
   updated_at: string;
+  birth_date: string;
 }
 
 export type MemberWithStoreName = {
@@ -25,4 +26,5 @@ export type MemberWithStoreName = {
   created_at: string;
   updated_at: string;
   store_name: string;
+  birth_date: string;
 }
