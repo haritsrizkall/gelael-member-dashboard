@@ -16,21 +16,25 @@ interface AddContactModal extends ModalProps {
 }
 
 const AddContactModal = (props: AddContactModal) => {
-  const [contactValue, setContactValue] = useState(""); 
+  const [contactValue, setContactValue] = useState("");
+  const [contactName, setContactName] = useState("");
   const [contactType, setContactType] = useState("email");
   const [loading, setLoading] = useState(false);
   const [errorForm, setErrorForm] = useState({
     contactValue: "",
+    contactName: ""
   });
   const cleanErrorForm = () => {
     setErrorForm({
       contactValue: "",
+      contactName: ""
     });
   }
   const { data: session } = useSession();
 
   const createContactSchema = z.object({
     contactValue: z.string().min(1),
+    contactName: z.string().min(1),
   });
 
   const handleSubmit = async () => {
@@ -38,11 +42,17 @@ const AddContactModal = (props: AddContactModal) => {
       setLoading(true);
       cleanErrorForm();
   
-      const result = createContactSchema.safeParse({ contactValue });
+      const input = {
+        contactValue,
+        contactName
+      };
+
+      const result = createContactSchema.safeParse(input);
       if (!result.success) {
         const errors = result.error.format();
         setErrorForm({
           contactValue: errors?.contactValue?._errors[0]!,
+          contactName: errors?.contactName?._errors[0]!
         });
         setLoading(false);
         return;
@@ -50,16 +60,23 @@ const AddContactModal = (props: AddContactModal) => {
   
       if (contactType == 'email') {
         let newAppconf = props.contact;
-        newAppconf.contacts.emails.push(contactValue);
+        newAppconf.contacts.emails.push({
+          value: contactValue,
+          name: contactName
+        });
         props.setContact(newAppconf);
       }else {
         let newAppconf = props.contact;
-        newAppconf.contacts.phones.push(contactValue);
+        newAppconf.contacts.phones.push({
+          value: contactValue,
+          name: contactName
+        });
         props.setContact(newAppconf);
       }
       await props.onAdd();
   
       setContactValue("");
+      setContactName("");
       setContactType("email");
       cleanErrorForm();
       setLoading(false);
@@ -104,12 +121,29 @@ const AddContactModal = (props: AddContactModal) => {
           </div>
         </div>
         <div className="mb-4 5">
+          <label className="mb-3 block text-black dark:text-white">
+            Name
+          </label>
+          <input
+            required
+            onChange={(e) => setContactName(e.target.value)}
+            value={contactName}
+            type="text"
+            placeholder="Customer Service"
+            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+          />
+          <ErrorText>{errorForm.contactName}</ErrorText>
+        </div>
+        <div className="mb-4 5">
+          <label className="mb-3 block text-black dark:text-white">
+            Value
+          </label>
           <input
             required
             onChange={(e) => setContactValue(e.target.value)}
             value={contactValue}
             type="text"
-            placeholder="contact"
+            placeholder="0812231231 / gelael@gmail.com"
             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
           <ErrorText>{errorForm.contactValue}</ErrorText>

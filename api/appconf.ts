@@ -1,4 +1,4 @@
-import { Appconf } from "@/types/appconf";
+import { Appconf, Contact } from "@/types/appconf";
 import { getApiUrl } from "@/utils/utils";
 import axios from "axios";
 
@@ -19,8 +19,8 @@ export type InputUpdateSocial = {
 }
 
 export type InputUpdateContacts = {
-  phones: string[];
-  emails: string[];
+  phones: Contact[];
+  emails: Contact[];
 }
 
 const appconfAPI: AppconfAPI = {

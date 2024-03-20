@@ -4,9 +4,14 @@ export type Appconf = {
   tiktok: string;
   instagram: string;
   contacts: {
-    phones: string[];
-    emails: string[];
+    phones: Contact[];
+    emails: Contact[];
   };
   terms_condition: string;
   privacy_policy: string;
+}
+
+export type Contact = {
+  name: string;
+  value: string;
 }
