@@ -9,7 +9,7 @@ import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 
-const Vouchers = () => {
+const VouchersPos = () => {
   const [metaData, setMetaData] = useState({
     current_page: 1,
     page_size: 15,
@@ -26,7 +26,7 @@ const Vouchers = () => {
         page: metaData.current_page,
         page_size: metaData.page_size,
         q: q,
-        voucher_type: `${VoucherType.UMUM},${VoucherType.MEMBER}`
+        voucher_type: `${VoucherType.GENERATED}`
       })
       setVouchers(response.data)
       setMetaData(response.meta) 
@@ -58,13 +58,7 @@ const Vouchers = () => {
 
   return (
     <>
-      <Breadcrumb pageName="Vouchers" />
-      <Link href={"/dashboard/vouchers/add"}>
-        <button
-          className="flex justify-center rounded bg-primary py-3 px-5 mb-5 font-medium text-gray">
-            Add Voucher
-        </button>
-      </Link>
+      <Breadcrumb pageName="Vouchers - POS" />
       <TableVoucher 
         vouchers={vouchers} 
         meta={metaData}
@@ -80,9 +74,10 @@ const Vouchers = () => {
         }}
         query={query}
         setQuery={setQueryDebounced}
+        type="POS"
       />
     </>
   )
 }
 
-export default Vouchers
+export default VouchersPos

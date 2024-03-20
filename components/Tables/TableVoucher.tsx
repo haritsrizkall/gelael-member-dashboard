@@ -59,9 +59,10 @@ interface TableVoucherProps {
   prevFn: () => void
   query: string
   setQuery: (query: string) => void
+  type?: "POS" | "MEMBER"
 }
 
-const TableVoucher = ({vouchers, meta, nextFn, prevFn, query, setQuery}: TableVoucherProps) => {
+const TableVoucher = ({vouchers, meta, nextFn, prevFn, query, setQuery, type = "MEMBER"}: TableVoucherProps) => {
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
     {/* Search bar */}
@@ -150,7 +151,9 @@ const TableVoucher = ({vouchers, meta, nextFn, prevFn, query, setQuery}: TableVo
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
                     <button>
-                      <Link href={`/dashboard/vouchers/${voucher.id}`}>
+                      <Link href={
+                        type == "POS" ? `/dashboard/voucherpos/${voucher.id}` : `/dashboard/vouchers/${voucher.id}`
+                      }>
                         <FaEdit className="text-primary" />
                       </Link>
                     </button>

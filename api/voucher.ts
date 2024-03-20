@@ -21,6 +21,7 @@ type getVouchersParams = {
   q?: string;
   page_size?: number;
   is_expired?: boolean;
+  voucher_type?: string;
 }
 
 export type VoucherPaginationRepsonse = {
@@ -90,6 +91,7 @@ const voucherAPI: VoucherAPI = {
     url.searchParams.append("page_size", (params.page_size || 10).toString())
     if (params.q) url.searchParams.append("q", params.q)
     if (params.is_expired) url.searchParams.append("is_expired", params.is_expired.toString())
+    if (params.voucher_type) url.searchParams.append("voucher_type", params.voucher_type)
     const resp = await axios.get(url.toString(), {
       headers: {
         Authorization: "Bearer " + token

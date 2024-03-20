@@ -26,7 +26,8 @@ export type VoucherDetailResponse = {
 
 export enum VoucherType {
   UMUM = 'UMUM',
-  MEMBER = 'MEMBER'
+  MEMBER = 'MEMBER',
+  GENERATED = 'GENERATED'
 }
 
 export function defaultVoucher(): Voucher {
