@@ -8,6 +8,7 @@ import Link from "next/link"
 import { FaEdit } from "react-icons/fa"
 import Pagination from "../Pagination"
 import { Meta } from "@/types/meta"
+import { formatCurrency } from "@/utils/formatter"
 
 const columns = [
   {
@@ -109,7 +110,7 @@ const TableVoucher = ({vouchers, meta, nextFn, prevFn, query, setQuery, type = "
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
-                {voucher.amount}
+                {formatCurrency(voucher.amount)}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

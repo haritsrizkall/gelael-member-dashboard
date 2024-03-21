@@ -66,6 +66,7 @@ const CreateVoucherMemberModal = (props: CreateVoucherMemberModal) => {
       console.log("resp", resp);
       setSelectedMembers([]);
       alert("Voucher given successfully");
+      location.reload();
     } catch (error) {
       console.log("error", error);
       alert("Failed to give voucher");
