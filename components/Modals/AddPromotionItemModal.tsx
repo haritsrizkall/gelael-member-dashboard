@@ -20,6 +20,7 @@ const AddPromotionItemModal = (props: AddPromotionItemModalProps) => {
   const [discount, setDiscount] = useState("");
   const [image, setImage] = useState<File | undefined>(undefined);
   const [loading , setLoading] = useState(false);
+  const [discountType, setDiscountType] = useState("percent");
   const [formError, setFormError] = useState({
     product_name: "",
     price: "",
@@ -44,7 +45,7 @@ const AddPromotionItemModal = (props: AddPromotionItemModalProps) => {
   const createPromotionItemSchema = z.object({
     product_name: z.string().min(1),
     price: z.number().min(1),
-    discount: z.number().min(1).max(100),
+    discount: z.number().min(1),
     promotion_id: z.number(),
     image: z.string()
   });
@@ -72,6 +73,34 @@ const AddPromotionItemModal = (props: AddPromotionItemModalProps) => {
         });
         setLoading(false);
         return;
+      }
+
+      if (discountType == "percent") {
+        if (parseInt(discount) > 100) {
+          setFormError({
+            ...formError,
+            discount: "Discount percent must be between 0-100"
+          })
+          setLoading(false);
+          return;
+        }
+      }else {
+        if (parseInt(discount) < 100){
+          setFormError({
+            ...formError,
+            discount: "Discount rupiah must be more than 100"
+          })
+          setLoading(false);
+          return;
+        }
+        if (parseInt(discount) > parseInt(productPrice)) {
+          setFormError({
+            ...formError,
+            discount: "Discount rupiah must be less than product price"
+          })
+          setLoading(false);
+          return;
+        }
       }
 
       if (!image) {
@@ -161,9 +190,24 @@ const AddPromotionItemModal = (props: AddPromotionItemModalProps) => {
           />
           <ErrorText>{formError.price}</ErrorText>
         </div>
+        <div className="mb-4.5">  
+          <label className="mb-3 block text-black dark:text-white">
+            Discount Type
+          </label>
+          <select
+            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+            value={discountType}
+            onChange={(e) => setDiscountType(e.target.value)}
+          >
+            <option value="percent">Persen</option>
+            <option value="rupiah">Rupiah</option>
+          </select>
+        </div>
         <div className="mb-4.5">
           <label className="mb-3 block text-black dark:text-white">
-            Discount
+            {
+              discountType === "percent" ? "Discount Percent (0-100)" : "Discount Rupiah (Rp)"
+            }
           </label>
           <input
             required

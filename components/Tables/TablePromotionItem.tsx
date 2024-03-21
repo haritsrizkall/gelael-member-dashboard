@@ -10,6 +10,7 @@ import Pagination from "../Pagination"
 import Image from "next/image"
 import DeleteConfirmationModal from "../Modals/DeleteConfirmationModal"
 import { Meta } from "@/types/meta"
+import { formatCurrency } from "@/utils/formatter"
 
 const columns = [
   {
@@ -29,7 +30,15 @@ const columns = [
     width: "50px"
   },
   {
-    title: "Discount",
+    title: "Discount Percentage",
+    width: "50px"
+  },
+  {
+    title: "Discount Value",
+    width: "50px"
+  },
+  {
+    title: "Final Price",
     width: "50px"
   },
   {
@@ -55,7 +64,9 @@ const TablePromotionItem = ({promotionItems, setPromotionItems, meta, nextFn, pr
     promotion_id: 0,
     created_at: "",
     updated_at: "",
-    image: ""
+    image: "",
+    final_price: 0,
+    percentage: 0
   })
   const [editMode, setEditMode] = useState(false)
   const [promotionItemId, setPromotionItemId] = useState<number>(0)
@@ -157,12 +168,22 @@ const TablePromotionItem = ({promotionItems, setPromotionItems, meta, nextFn, pr
                   </td>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                     <p className="text-black dark:text-white">
-                      {item.price}
+                      {formatCurrency(item.price)}
                     </p>
                   </td>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                     <p className="text-black dark:text-white">
-                      {item.discount}
+                      {item.percentage + " %"}
+                    </p>
+                  </td>
+                  <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                    <p className="text-black dark:text-white">
+                      {formatCurrency(item.price - item.final_price)}
+                    </p>
+                  </td>
+                  <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                    <p className="text-black dark:text-white">
+                      {formatCurrency(item.final_price)}
                     </p>
                   </td>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

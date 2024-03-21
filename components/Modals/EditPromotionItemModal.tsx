@@ -23,6 +23,7 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
   const [discount, setDiscount] = useState("");
   const [image, setImage] = useState<File | undefined>(undefined);
   const [defaultImage, setDefaultImage] = useState<string>("" as string);
+  const [discountType, setDiscountType] = useState("percent");
   const [loading , setLoading] = useState(false);
   const [formError, setFormError] = useState({
     product_name: "",
@@ -47,7 +48,7 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
   const updatePromotionItemSchema = z.object({
     product_name: z.string().min(1),
     price: z.number().min(1),
-    discount: z.number().min(1).max(100),
+    discount: z.number().min(1),
     id: z.number(),
     image: z.string()
   });
@@ -58,6 +59,7 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
     setProductPrice(props.promotionItem.price.toString())
     setDiscount(props.promotionItem.discount.toString())
     setDefaultImage(props.promotionItem.image ? props.promotionItem.image : "" as string)
+    setDiscountType(props.promotionItem.discount > 100 ? "rupiah" : "percent")
   },[props.promotionItem.promotion_item_id])
   
   const handleSubmit = async () => {
@@ -88,6 +90,34 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
         return;
       }
 
+      if (discountType == "percent") {
+        if (parseInt(discount) > 100) {
+          setFormError({
+            ...formError,
+            discount: "Discount percent must be between 0-100"
+          })
+          setLoading(false);
+          return;
+        }
+      }else {
+        if (parseInt(discount) < 100){
+          setFormError({
+            ...formError,
+            discount: "Discount rupiah must be more than 100"
+          })
+          setLoading(false);
+          return;
+        }
+        if (parseInt(discount) > parseInt(productPrice)) {
+          setFormError({
+            ...formError,
+            discount: "Discount rupiah must be less than product price"
+          })
+          setLoading(false);
+          return;
+        }
+      }
+
       const token = session?.user?.token as string
 
       if (image) {
@@ -97,7 +127,6 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
 
       const promotionItem = await promotionItemAPI.updatePromotionItem(token, newPromotionItem)
 
-      console.log("resp ", promotionItem)
       // update promotion items
       const newPromotionItems = props.promotionItems.map((item: PromotionItem) => {
         if (item.promotion_item_id === newPromotionItem.id) {
@@ -161,9 +190,24 @@ const EditPromotionItemModal = (props: EditPromotionItemModalProps) => {
           />
           <ErrorText>{formError.price}</ErrorText>
         </div>
+        <div className="mb-4.5">  
+          <label className="mb-3 block text-black dark:text-white">
+            Discount Type
+          </label>
+          <select
+            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+            value={discountType}
+            onChange={(e) => setDiscountType(e.target.value)}
+          >
+            <option value="percent">Persen</option>
+            <option value="rupiah">Rupiah</option>
+          </select>
+        </div>
         <div className="mb-4.5">
           <label className="mb-3 block text-black dark:text-white">
-            Discount
+            {
+              discountType === "percent" ? "Discount Percent (0-100)" : "Discount Rupiah (Rp)"
+            }
           </label>
           <input
             required

@@ -7,4 +7,6 @@ export type PromotionItem = {
   created_at: string;
   updated_at: string;
   image: string;
+  final_price: number;
+  percentage: number;
 }
