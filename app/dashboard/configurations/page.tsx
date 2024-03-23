@@ -1,12 +1,14 @@
 "use client"
 import appconfAPI from "@/api/appconf";
+import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import ErrorText from "@/components/ErrorText";
 import AddContactModal from "@/components/Modals/AddContactModal";
 import DeleteConfirmationModal from "@/components/Modals/DeleteConfirmationModal";
 import { Appconf, Contact } from "@/types/appconf";
-import { cn } from "@/utils/utils";
+import { cn, getApiUrl } from "@/utils/utils";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
@@ -34,12 +36,16 @@ const contactColumns = [
 
 const SocialMedia = () => {
   const [editCommon, setEditCommon] = useState(false)
+  const [editPOSImage, setEditPOSImage] = useState(false)
   const [editContacts, setEditContacts] = useState(false)
   const [editSocmed, setEditSocmed] = useState(false)
   const [addContacts, setAddContacts] = useState(false)
   const [loadingCommon, setLoadingCommon] = useState(false)
+  const [loadingPOSImage, setLoadingPOSImage] = useState(false)
   const [loadingContacts, setLoadingContacts] = useState(false)
   const [loadingSocmed, setLoadingSocmed] = useState(false)
+  const [posVoucherImage, setPosVoucherImage] = useState<File | null>(null)
+  const [defaultPOSVoucherIMage, setDefaultPOSVoucherImage] = useState<string>(`${getApiUrl()}/images/voucher-default.png`)
   const [appconf, setAppconf] = useState<Appconf>({
     slider_interval: 0,
     instagram: "",
@@ -208,6 +214,24 @@ const SocialMedia = () => {
     }
   }
 
+  const handleUploadPOSImage = async () => {
+    try {
+      setLoadingPOSImage(true)
+      const token = session?.user?.token as string
+      const resp = await uploadAPI.uploadWithName(token, {
+        file: posVoucherImage as File,
+        filename: "voucher-default"
+      })
+      setDefaultPOSVoucherImage(resp.data.filename)
+      alert("Success to upload POS Voucher Image")
+      location.reload()
+    } catch (error) {
+      alert("Error to upload POS Voucher Image")
+    }finally {
+      setLoadingPOSImage(false)
+    }
+  }
+
   const getData = async () => {
     try {
       const token = session?.user?.token as string
@@ -282,6 +306,72 @@ const SocialMedia = () => {
                     className={cn("flex items-center gap-2.5 bg-primary py-3 px-6.5 rounded font-bold text-white transition hover:bg-primary-dark", loadingCommon ? "bg-gray text-primary" : "")}
                   >
                     <span>{loadingCommon ? "Loading..." : "Save"}</span>
+                  </button>
+                </>
+              )
+            }
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-title-md3 font-semibold text-black dark:text-white mb-5">Voucher POS Image</h2>
+        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark mb-10">
+          <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark flex items-center">
+            <h3 className="font-medium text-black dark:text-white mr-3">
+              Voucher POS Image
+            </h3>
+          </div>
+          <div>
+            <div className="p-6.5">
+              <div className="mb-4.5">
+                <Image
+                  src={defaultPOSVoucherIMage}
+                  loader={() => defaultPOSVoucherIMage}
+                  width={300}
+                  height={300}
+                  className="rounded-lg"
+                  alt="POS Voucher Image"
+                />
+              </div>
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Image (png, jpg, jpeg)
+                </label>
+                <input
+                  required
+                  disabled={!editPOSImage}
+                  onChange={(e) => setPosVoucherImage(e.target.files?.[0])}
+                  type="file"
+                  accept="image/png, image/jpg, image/jpeg, image/JPG, image/JPEG, image/PNG"
+                  className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent font-medium outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6.5 flex justify-end">
+            {
+              !editPOSImage ? (
+                <button
+                  onClick={() => setEditPOSImage(!editPOSImage)}
+                  className="flex items-center gap-2.5 bg-primary py-3 px-6.5 rounded font-bold text-white transition hover:bg-primary-dark"
+                >
+                  <span>Edit</span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setEditPOSImage(!editPOSImage)}
+                    className="flex items-center gap-2.5 bg-gray py-3 px-6.5 rounded font-bold text-graydark transition hover:bg-primary-dark mr-4.5"
+                  >
+                    <span>Cancel</span>
+                  </button>
+                  <button
+                    onClick={handleUploadPOSImage}
+                    className={cn("flex items-center gap-2.5 bg-primary py-3 px-6.5 rounded font-bold text-white transition hover:bg-primary-dark", loadingPOSImage ? "bg-gray text-primary" : "")}
+                  >
+                    <span>{loadingPOSImage ? "Loading..." : "Save"}</span>
                   </button>
                 </>
               )
