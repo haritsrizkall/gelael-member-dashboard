@@ -1,6 +1,6 @@
 import { Meta } from "@/types/meta";
 import { DeleteResponse, SuccessResponse } from "@/types/response";
-import { Voucher, VoucherDetailResponse } from "@/types/voucher";
+import { GiveVoucherType, Voucher, VoucherDetailResponse } from "@/types/voucher";
 import { VoucherMemberWithNameAndEmail } from "@/types/voucherMember";
 import { getApiUrl } from "@/utils/utils";
 import axios from "axios";
@@ -51,7 +51,9 @@ export type InputUpdateVoucher = {
 
 export type InputSetVoucherMembers = {
   voucher_id: number;
-  member_ids: number[];
+  type: GiveVoucherType;
+  store_ids?: number[];
+  member_ids?: number[];
 }
 
 export type getVoucherMemberByVoucherIdResponse = {

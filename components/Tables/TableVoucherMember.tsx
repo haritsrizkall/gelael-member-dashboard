@@ -14,6 +14,10 @@ const columns = [
     "width": "50px"
   },
   {
+    "title": "Smartsoft ID",
+    "width": "50px"
+  },
+  {
     "title": "Email",
     "width": "50px"
   },
@@ -54,8 +58,8 @@ const TableVoucherMember = ({voucherMembers, meta}: TableVoucherMemberProps) => 
           </tr>
         </thead>
         <tbody>
-          { voucherMembers && voucherMembers.map((voucher: VoucherMemberWithNameAndEmail, key) => (
-            <tr key={key}>
+          { voucherMembers?.map((voucher: VoucherMemberWithNameAndEmail, key) => (
+            <tr key={voucher.id}>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
               <p className="text-black dark:text-white">
                 {key + 1}
@@ -63,7 +67,12 @@ const TableVoucherMember = ({voucherMembers, meta}: TableVoucherMemberProps) => 
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
-                {voucher.email ?? "-"}
+                {voucher.smartsoft_id ?? "-"}
+              </p>
+            </td>
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <p className="text-black dark:text-white">
+                {voucher.email}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
@@ -83,12 +92,12 @@ const TableVoucherMember = ({voucherMembers, meta}: TableVoucherMemberProps) => 
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
-                {voucher.used_at ? voucher.used_at : "-"}
+                {voucher.used_at ?? "-"}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
-                {voucher.used_at_store ? voucher.used_at_store : "-"}
+                {voucher.used_at_store ??  "-"}
               </p>
             </td>
             </tr>

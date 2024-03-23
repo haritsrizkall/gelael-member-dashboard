@@ -54,3 +54,9 @@ export function defaultVoucherStats(): VoucherStats {
     total_vouchers: 0
   }
 }
+
+export enum GiveVoucherType {
+  ALL = 'ALL',
+  MEMBER = 'MEMBER',
+  STORE = 'STORE'
+}

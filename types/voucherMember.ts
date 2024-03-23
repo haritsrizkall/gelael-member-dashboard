@@ -8,6 +8,7 @@ export type VoucherMember = {
   voucher_code: string;
   used_at: string | null;
   used_at_store: string | null;
+  smartsoft_id: string;
 }
 
 export type VoucherMemberWithNameAndEmail = VoucherMember & { email: string; name: string }
