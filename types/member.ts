@@ -18,6 +18,7 @@ export type Member = {
 
 export type MemberWithStoreName = {
   id: number;
+  smartsoft_id: string;
   user_id: number;
   store_id: number;
   name: string;

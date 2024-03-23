@@ -10,6 +10,10 @@ const columns = [
     "width": "50px"
   },
   {
+    "title": "Smartsoft ID",
+    "width": "50px"
+  },
+  {
     "title": "Name",
     "width": "50px"
   },
@@ -34,10 +38,6 @@ const columns = [
     "width": "50px"
   },
   {
-    "title": "Smartsoft ID",
-    "width": "50px"
-  },
-  {
     "title": "Action",
     "width": "50px"
   }
@@ -55,7 +55,6 @@ interface TableStoreProps {
 const TableStore = ({ stores, meta, nextFn, prevFn, query, setQuery }: TableStoreProps) => {
 
   return (
-    <>
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
     <div className="max-w-full overflow-x-auto">
       <table className="w-full table-auto">
@@ -74,6 +73,11 @@ const TableStore = ({ stores, meta, nextFn, prevFn, query, setQuery }: TableStor
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
               <p className="text-black dark:text-white">
                 {key + 1 + (meta.current_page - 1) * meta.page_size}
+              </p>
+            </td>
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <p className="text-black dark:text-white">
+                {store.smartsoft_id}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
@@ -107,11 +111,6 @@ const TableStore = ({ stores, meta, nextFn, prevFn, query, setQuery }: TableStor
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-              <p className="text-black dark:text-white">
-                {store.smartsoft_id}
-              </p>
-            </td>
-            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <div className="flex items-center space-x-3.5">
                 <button>
                   <Link href={`/dashboard/stores/${store.store_id}`}>
@@ -135,7 +134,6 @@ const TableStore = ({ stores, meta, nextFn, prevFn, query, setQuery }: TableStor
       />
     </div>
     </div>
-    </>
   )
 }
 

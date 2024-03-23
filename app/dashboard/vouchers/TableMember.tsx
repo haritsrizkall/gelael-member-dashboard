@@ -12,6 +12,10 @@ const columns = [
     width: "50px"
   },
   {
+    title: "Smartsoft ID",
+    width: "50px"
+  },
+  {
     title: "Name",
     width: "50px"
   },
@@ -79,6 +83,11 @@ const TableMember = ({members, meta, nextFn, prevFn, query, setQuery}: TableMemb
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
               <p className="text-black dark:text-white">
                 {key + 1 + (meta.current_page - 1) * meta.page_size}
+              </p>
+            </td>
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <p className="text-black dark:text-white">
+                {member.smartsoft_id}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
