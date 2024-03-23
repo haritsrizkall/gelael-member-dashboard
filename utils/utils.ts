@@ -32,3 +32,5 @@ export function generateMaxWidth(size: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"
 export function rolesToString(roles: Role[]) {
   return roles.map((role) => role.name).join(", ");
 }
+
+export const VALID_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "JPG", "JPEG", "PNG"];
