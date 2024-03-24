@@ -44,7 +44,7 @@ const SocialMedia = () => {
   const [loadingPOSImage, setLoadingPOSImage] = useState(false)
   const [loadingContacts, setLoadingContacts] = useState(false)
   const [loadingSocmed, setLoadingSocmed] = useState(false)
-  const [posVoucherImage, setPosVoucherImage] = useState<File | undefined>(null)
+  const [posVoucherImage, setPosVoucherImage] = useState<File | undefined>(undefined)
   const [defaultPOSVoucherIMage, setDefaultPOSVoucherImage] = useState<string>(`${getApiUrl()}/images/voucher-default.png`)
   const [appconf, setAppconf] = useState<Appconf>({
     slider_interval: 0,
