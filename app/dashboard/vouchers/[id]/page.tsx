@@ -9,6 +9,7 @@ import CreateVoucherMemberModal from "@/components/Modals/CreateVoucherMemberMod
 import TableVoucherMember from "@/components/Tables/TableVoucherMember";
 import { Voucher, VoucherStats, defaultVoucher, defaultVoucherStats } from "@/types/voucher";
 import { VoucherMemberWithNameAndEmail } from "@/types/voucherMember";
+import { toLocalDate, toUtcDate } from "@/utils/formatter";
 import { cn, statusString } from "@/utils/utils";
 import moment from "moment";
 import { useSession } from "next-auth/react";
@@ -53,8 +54,8 @@ const Members = () => {
       console.log("resp", resp);
       setVoucher({
         ...resp.voucher_data,
-        expired_at: moment(resp.voucher_data.expired_at).format("YYYY-MM-DD"),
-        start_at: moment(resp.voucher_data.start_at).format("YYYY-MM-DD")
+        expired_at: toLocalDate(resp.voucher_data.expired_at).format("YYYY-MM-DD"),
+        start_at: toLocalDate(resp.voucher_data.start_at).format("YYYY-MM-DD")
       });
       setVoucherStats(resp.stats);
     } catch (error) {
@@ -84,12 +85,7 @@ const Members = () => {
     }, {
       message: "Expired date must be greater or equal than today"
     }),
-    start_at: z.coerce.date().refine((date) => {
-      const today = moment().startOf("day").toDate();
-      return date >= today;
-    }, {
-      message: "Start date must be greater or equal than today"
-    })
+    start_at: z.coerce.date()
   });
 
   const handleEdit = async () => {
@@ -102,8 +98,8 @@ const Members = () => {
         title: voucher.title,
         description: voucher.description,
         image: voucher.image.split("/").pop() as string,
-        expired_at: new Date(voucher.expired_at),
-        start_at: new Date(voucher.start_at),
+        expired_at: toUtcDate(voucher.expired_at).toDate(),
+        start_at: toUtcDate(voucher.start_at).toDate(),
       }
 
       const result = editVoucherSchema.safeParse(input);

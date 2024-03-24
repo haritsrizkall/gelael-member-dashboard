@@ -13,6 +13,7 @@ import Pagination from "../Pagination";
 import DeleteConfirmationModal from "../Modals/DeleteConfirmationModal";
 import { useState } from "react";
 import { set } from "lodash";
+import { toLocalDate } from "@/utils/formatter";
 
 const columns = [
   {
@@ -25,6 +26,10 @@ const columns = [
   },
   {
     title: "Store",
+    width: "50px"
+  },
+  {
+    title: "Start at",
     width: "50px"
   },
   {
@@ -122,7 +127,12 @@ const TablePromotion = ({promotions, setPromotions, meta, nextFn, prevFn, query,
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
-                {moment(promotion.expired_at).format("DD MMM YYYY")}
+                {toLocalDate(promotion.start_at).format("DD MMM YYYY")}
+              </p>
+            </td>
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <p className="text-black dark:text-white">
+                {toLocalDate(promotion.expired_at).format("DD MMM YYYY")}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

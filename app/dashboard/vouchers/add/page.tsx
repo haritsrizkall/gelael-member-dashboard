@@ -9,6 +9,7 @@ import voucherAPI from "@/api/voucher";
 import { z } from "zod";
 import ErrorText from "@/components/ErrorText";
 import moment from "moment";
+import { toUtcDate } from "@/utils/formatter";
 
 const AddVoucher = () => {
   const [title, setTitle] = useState("");
@@ -80,8 +81,8 @@ const AddVoucher = () => {
         description,
         type: selectedType.value,
         amount: parseInt(amount),
-        expired_at: new Date(expired_at),
-        start_at: new Date(start_at),
+        expired_at: toUtcDate(expired_at).toDate(),
+        start_at: toUtcDate(start_at).toDate(),
         count,
         image: "",
       }

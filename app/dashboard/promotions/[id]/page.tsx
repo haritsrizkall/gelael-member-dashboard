@@ -9,6 +9,7 @@ import ErrorText from "@/components/ErrorText";
 import AddPromotionItemModal from "@/components/Modals/AddPromotionItemModal";
 import TablePromotionItem from "@/components/Tables/TablePromotionItem";
 import { PromotionItem } from "@/types/promotionItem";
+import { toLocalDate, toUtcDate } from "@/utils/formatter";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
@@ -99,12 +100,12 @@ const Promotion = () => {
       setDescription(resp.description);
       setColor(resp.color);
       setBackgroundColor(resp.background_color);
-      setExpiredAt(moment(resp.expired_at).format("YYYY-MM-DD"));
+      setExpiredAt(toLocalDate(resp.expired_at).format("YYYY-MM-DD"));
       setImageName(resp.image.split("/").pop() as string);
       setDefaultStoreId(resp.store_id);
       setPromotionItems(resp.promotion_item as PromotionItem[]);
       setPromotionId(resp.id);
-      setStartAt(moment(resp.start_at).format("YYYY-MM-DD"));
+      setStartAt(toLocalDate(resp.start_at).format("YYYY-MM-DD"));
     }
   }
 
@@ -155,9 +156,9 @@ const Promotion = () => {
         image: "",
         background_color: backgroundColor,
         color,
-        expired_at: new Date(expiredAt),
+        expired_at: toUtcDate(expiredAt),
         store_id: selectedStore.value,
-        start_at: new Date(startAt)
+        start_at: toUtcDate(startAt)
       }
       const result = createPromotionSchema.safeParse(input);
       console.log("Result ", result);
@@ -187,9 +188,9 @@ const Promotion = () => {
           image: imageName,
           color,
           background_color: backgroundColor,
-          expired_at: new Date(expiredAt),
+          expired_at: toUtcDate(expiredAt).toDate(),
           store_id: selectedStore.value,
-          start_at: new Date(startAt)
+          start_at: toUtcDate(startAt).toDate()
         });
 
         
@@ -205,9 +206,9 @@ const Promotion = () => {
           image: resp.data.filename.split("/").pop() as string,
           color,
           background_color: backgroundColor,
-          expired_at: new Date(expiredAt),
+          expired_at: toUtcDate(expiredAt).toDate(),
           store_id: selectedStore.value,
-          start_at: new Date(startAt)
+          start_at: toUtcDate(startAt).toDate()
         });
         
         if (respPromotion) {

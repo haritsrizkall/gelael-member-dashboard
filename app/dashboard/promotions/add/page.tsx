@@ -6,6 +6,7 @@ import uploadAPI from "@/api/upload";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Button from "@/components/Button";
 import ErrorText from "@/components/ErrorText";
+import { toUtcDate } from "@/utils/formatter";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -102,8 +103,8 @@ const AddPromotion = () => {
         image: "",
         color,
         background_color: backgroundColor,
-        expired_at: new Date(expiredAt),
-        start_at: new Date(startAt),
+        expired_at: toUtcDate(expiredAt),
+        start_at: toUtcDate(startAt),
         store_id: selectedStore.value
       }
       const result = createPromotionSchema.safeParse(input);
@@ -144,9 +145,9 @@ const AddPromotion = () => {
         description,
         image: resp.data.filename.split("/").pop() as string,
         color,
-        expired_at: new Date(expiredAt),
+        expired_at: toUtcDate(expiredAt).toDate(),
         store_id: selectedStore.value,
-        start_at: new Date(startAt),
+        start_at: toUtcDate(startAt).toDate(),
         background_color: backgroundColor
       });
   
