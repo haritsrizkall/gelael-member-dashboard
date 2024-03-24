@@ -140,11 +140,7 @@ const Promotion = () => {
     color: z.string(),
     background_color: z.string(),
     start_at: z.coerce.date(),
-    expired_at: z.coerce.date().refine((data) => {
-      return data > new Date();
-      }, {
-      message: "Expired at must be greater than today"
-    }),
+    expired_at: z.coerce.date(),
     store_id: z.number().nonnegative().refine((store_id) => store_id !== 0, {
       message: "Store is required"
     }),
