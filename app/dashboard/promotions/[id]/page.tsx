@@ -333,7 +333,7 @@ const Promotion = () => {
                     value={backgroundColor}
                     placeholder="#FFFFF"
                   />
-                  <ErrorText>{errorForm.backgroundColor}</ErrorText>
+                  <ErrorText>{errorForm.background_color}</ErrorText>
                 </div>
 
                 <div className="mb-4.5">

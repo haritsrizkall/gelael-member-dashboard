@@ -4,7 +4,7 @@ import memberAPI from "@/api/member";
 import voucherAPI, { InputSetVoucherMembers } from "@/api/voucher";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb"
 import Button from "@/components/Button";
-import { Voucher, VoucherStats } from "@/types/voucher";
+import { GiveVoucherType, Voucher, VoucherStats } from "@/types/voucher";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -53,6 +53,7 @@ const Members = () => {
       const memberIds = selectedMembers.map(member => member.value)
       const token = session?.user?.token as string;
       const input: InputSetVoucherMembers = {
+        type: GiveVoucherType.MEMBER,
         voucher_id: parseInt(params.id as string),
         member_ids: memberIds
       }
