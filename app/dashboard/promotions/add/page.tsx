@@ -17,6 +17,7 @@ const AddPromotion = () => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | undefined>(undefined);
   const [color, setColor] = useState("#ffffff");
+  const [backgroundColor, setBackgroundColor] = useState("#323232" as string);
   const [expiredAt, setExpiredAt] = useState("");
   const [startAt, setStartAt] = useState("");
   const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
@@ -29,6 +30,7 @@ const AddPromotion = () => {
     title: "",
     description: "",
     image: "",
+    background_color: "",
     color: "",
     expiredAt: "",
     store_id: "",
@@ -41,6 +43,7 @@ const AddPromotion = () => {
       title: "",
       description: "",
       image: "",
+      background_color: "",
       color: "",
       expiredAt: "",
       store_id: "",
@@ -69,6 +72,7 @@ const AddPromotion = () => {
     title: z.string().min(1),
     description: z.string().min(1),
     image: z.string(),
+    background_color: z.string(),
     color: z.string(),
     start_at: z.coerce.date().refine((data) => {
       const today = moment().startOf('day').toDate();
@@ -97,6 +101,7 @@ const AddPromotion = () => {
         description,
         image: "",
         color,
+        background_color: backgroundColor,
         expired_at: new Date(expiredAt),
         start_at: new Date(startAt),
         store_id: selectedStore.value
@@ -113,7 +118,8 @@ const AddPromotion = () => {
           color: errors?.color?._errors[0]!,
           expiredAt: errors?.expired_at?._errors[0]!,
           store_id: errors?.store_id?._errors[0]!,
-          startAt: errors?.start_at?._errors[0]!
+          startAt: errors?.start_at?._errors[0]!,
+          background_color: errors?.background_color?._errors[0]!
         })
         setLoading(false);
         return;
@@ -140,7 +146,8 @@ const AddPromotion = () => {
         color,
         expired_at: new Date(expiredAt),
         store_id: selectedStore.value,
-        start_at: new Date(startAt)
+        start_at: new Date(startAt),
+        background_color: backgroundColor
       });
   
       if (respPromotion) {
@@ -242,6 +249,19 @@ const AddPromotion = () => {
                     onChange={(e) => setColor(e.target.value)}
                     type="color"
                     value={color}
+                    placeholder="#FFFFF"
+                  />
+                  <ErrorText>{errorForm.color}</ErrorText>
+                </div>
+
+                <div className="mb-4.5">
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    Background Color
+                  </label>
+                  <input
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    type="color"
+                    value={backgroundColor}
                     placeholder="#FFFFF"
                   />
                   <ErrorText>{errorForm.color}</ErrorText>

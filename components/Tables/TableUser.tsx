@@ -16,6 +16,10 @@ const columns = [
     width: "50px"
   },
   {
+    title: "Phone Number",
+    width: "50px"
+  },
+  {
     title: "Name",
     width: "50px"
   },
@@ -77,6 +81,11 @@ const TableUser = ({users, meta, nextFn, prevFn, query, setQuery}: TableUserProp
               <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                 <p className="text-black dark:text-white">
                   {user.email}
+                </p>
+              </td>
+              <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                <p className="text-black dark:text-white">
+                  {user.phone_number || "-"}
                 </p>
               </td>
               <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

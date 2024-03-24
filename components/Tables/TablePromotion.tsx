@@ -40,6 +40,10 @@ const columns = [
     width: "50px"
   },
   {
+    title: "Background Color",
+    width: "50px"
+  },
+  {
     title: "Status",
     width: "50px"
   },
@@ -138,6 +142,13 @@ const TablePromotion = ({promotions, setPromotions, meta, nextFn, prevFn, query,
               <div 
                 className="w-4.5 h-3 border border-stroke border-1"
                 style={{backgroundColor: promotion.color}}
+              >
+              </div>
+            </td>
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <div 
+                className="w-4.5 h-3 border border-stroke border-1"
+                style={{backgroundColor: promotion.background_color}}
               >
               </div>
             </td>

@@ -3,6 +3,7 @@ export type Promotion = {
 	title: string;
 	description: string;
 	image: string;
+	background_color: string;
 	color: string;
 	expired_at: string;
 	created_at: string;
@@ -17,6 +18,7 @@ export type PromotionWithStoreName = {
 	title: string;
 	description: string;
 	image: string;
+	background_color: string;
 	color: string;
 	expired_at: string;
 	created_at: string;
