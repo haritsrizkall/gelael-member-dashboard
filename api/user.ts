@@ -31,6 +31,7 @@ export type getUsersParams = {
   page?: number;
   q?: string;
   page_size?: number;
+  roles?: number[];
 }
 
 const userAPI: UserAPI = {
@@ -52,6 +53,7 @@ const userAPI: UserAPI = {
     if (params.page) url.searchParams.append('page', params.page.toString())
     if (params.q) url.searchParams.append('q', params.q)
     if (params.page_size) url.searchParams.append('page_size', params.page_size.toString())
+    if (params.roles) url.searchParams.append('roles', params.roles.join(','))
     const resp = await axios.get(url.toString(), {
       headers: {
         Authorization: "Bearer " + token

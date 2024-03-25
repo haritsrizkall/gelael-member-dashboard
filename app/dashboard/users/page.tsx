@@ -27,7 +27,8 @@ const Users = () => {
       const response = await userAPI.getUsersWithRoles(token, {
         page: page,
         page_size: metaData.page_size,
-        q: q
+        q: q,
+        roles: [1, 2]
       })
       setMetaData(response.meta)
       setUsers(response.data)

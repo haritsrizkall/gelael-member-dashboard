@@ -13,7 +13,7 @@ const Banners = () => {
   
 
   const getBanners = async () => {
-    const resp = await bannerAPI.getBanners(session?.user?.token as string, 1, 10)
+    const resp = await bannerAPI.getBanners(session?.user?.token as string, 1, 25)
     console.log("Banner ", resp)
     setBanners(resp)
   }
