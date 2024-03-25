@@ -10,6 +10,7 @@ import { z } from "zod";
 import ErrorText from "@/components/ErrorText";
 import moment from "moment";
 import { toUtcDate } from "@/utils/formatter";
+import { useRouter } from "next/navigation";
 
 const AddVoucher = () => {
   const [title, setTitle] = useState("");
@@ -25,6 +26,8 @@ const AddVoucher = () => {
   ]);
   const [selectedType, setSelectedType] = useState<{label: string, value: string}>(typeOptions[0]);
   const [image, setImage] = useState<File | undefined>(undefined);
+  const router = useRouter()
+
   const { data: session } = useSession()
 
   const [formError, setFormError] = useState({
@@ -137,6 +140,8 @@ const AddVoucher = () => {
       setAmount("")
       setCount(0)
       setImage(undefined)
+
+      router.push("/dashboard/vouchers")
     }catch (e) {
       console.log(e)
       setLoading(false)

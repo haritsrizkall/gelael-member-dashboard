@@ -16,6 +16,14 @@ const columns = [
     width: "50px"
   },
   {
+    title: "Email",
+    width: "50px"
+  },
+  {
+    title: "Phone Number",
+    width: "50px"
+  },
+  {
     title: "Name",
     width: "50px"
   },
@@ -87,7 +95,17 @@ const TableMember = ({members, meta, nextFn, prevFn, query, setQuery}: TableMemb
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
-                {member.smartsoft_id}
+                {member.smartsoft_id || '-'}
+              </p>
+            </td>
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <p className="text-black dark:text-white">
+                {member.email}
+              </p>
+            </td>
+            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+              <p className="text-black dark:text-white">
+                {member.phone_number || "-"}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

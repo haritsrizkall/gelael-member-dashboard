@@ -28,4 +28,6 @@ export type MemberWithStoreName = {
   updated_at: string;
   store_name: string;
   birth_date: string;
+  email: string;
+  phone_number: string;
 }
