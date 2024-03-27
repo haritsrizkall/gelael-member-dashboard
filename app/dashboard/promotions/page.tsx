@@ -5,10 +5,17 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { PromotionWithStoreName } from "@/types/promotion";
+import storeAPI from "@/api/store";
+import Select from "react-select";
 
 
 const Promotion = () => {
   const { data: session, status } = useSession()
+  const [storeOptions, setStoreOptions] = useState<{label: string, value: number}[]>([]); 
+  const [selectedStore, setSelectedStore] = useState<{label: string, value:number}>({
+    label: "All",
+    value: 0
+  });
   const [promotions, setPromotions] = useState<PromotionWithStoreName[]>([])
   const [metaData, setMetaData] = useState({
     current_page: 1,
@@ -22,7 +29,8 @@ const Promotion = () => {
     const resp = await promotionAPI.getPromotionsWithStoreName(session?.user?.token as string, {
       page: metaData.current_page,
       page_size: metaData.page_size,
-      q: q
+      q: q,
+      store_id: selectedStore.value
     })
     setPromotions(resp.data)
     setMetaData(resp.meta)
@@ -30,8 +38,34 @@ const Promotion = () => {
 
   useEffect(() => {
     getPromotions()
-  }, [metaData.current_page])
+  }, [metaData.current_page, selectedStore.value])
   
+  const getStores = async () => {
+    const token = session?.user?.token as string;
+    const resp = await storeAPI.getStoresList(token);
+    
+    let storeOptions = resp.map(store => {
+      return {
+        label: store.name,
+        value: store.store_id
+      }
+    })
+    
+    setStoreOptions(
+      [
+        {
+          label: "All",
+          value: 0
+        },
+        ...storeOptions
+      ]
+    );
+  }
+
+  useEffect(() => {
+    getStores();
+  }, [])
+
   return (
     <>
       <Link href={"/dashboard/promotions/add"}>
@@ -40,6 +74,17 @@ const Promotion = () => {
             Add promotion
         </button>
       </Link>
+      <div className="mb-4.5">
+        <label className="mb-3 block text-black dark:text-white">
+          Store 
+        </label>
+        <Select
+          options={storeOptions}
+          onChange={(data) => {
+            setSelectedStore(data as {label: string, value: number})
+          }}
+        />
+      </div>
       <TablePromotion 
         promotions={promotions}
         setPromotions={setPromotions}

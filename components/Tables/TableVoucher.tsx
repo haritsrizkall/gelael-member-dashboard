@@ -91,8 +91,8 @@ const TableVoucher = ({vouchers, meta, nextFn, prevFn, query, setQuery, type = "
           </tr>
         </thead>
         <tbody>
-          {vouchers && vouchers.map((voucher: Voucher, key) => (
-            <tr key={key}>
+          {vouchers?.map((voucher: Voucher, key) => (
+            <tr key={voucher.id}>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
               <p className="text-black dark:text-white">
                 {key + 1 + (meta.current_page - 1) * meta.page_size}
@@ -134,13 +134,13 @@ const TableVoucher = ({vouchers, meta, nextFn, prevFn, query, setQuery, type = "
             
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
-                {moment(voucher.expired_at).format("DD MMM YYYY")}
+                {moment(voucher.start_at).format("DD MMM YYYY")}
               </p>
             </td>
 
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
-                {moment(voucher.start_at).format("DD MMM YYYY")}
+                {moment(voucher.expired_at).format("DD MMM YYYY")}
               </p>
             </td>
 

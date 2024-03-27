@@ -108,7 +108,7 @@ const TablePromotion = ({promotions, setPromotions, meta, nextFn, prevFn, query,
           </tr>
         </thead>
         <tbody>
-          {promotions.map((promotion: PromotionWithStoreName, key) => (
+          {promotions?.map((promotion: PromotionWithStoreName, key) => (
             <tr key={key}>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:pl-11">
               <p className="text-black dark:text-white">

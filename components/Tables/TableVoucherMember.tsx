@@ -87,7 +87,7 @@ const TableVoucherMember = ({voucherMembers, meta}: TableVoucherMemberProps) => 
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <p className="text-black dark:text-white">
-                {voucher.used ? "True" : "False"}
+                {voucher.used ? "Yes" : "No"}
               </p>
             </td>
             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
