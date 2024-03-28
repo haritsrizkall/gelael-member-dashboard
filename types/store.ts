@@ -16,6 +16,7 @@ export type Store = {
   duty_manager_2_image: string;
   store_images: StoreImage[];
   smartsoft_id: string;
+  is_active: boolean;
 }
 
 export type StoreImage = {

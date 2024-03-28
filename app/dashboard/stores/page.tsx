@@ -40,6 +40,7 @@ const Stores = () => {
     <>
     <Breadcrumb pageName="Stores" />
     <TableStore
+      setStores={setStores}
       stores={stores}
       meta={metaData}
       nextFn={() => {

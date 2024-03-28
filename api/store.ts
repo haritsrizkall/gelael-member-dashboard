@@ -21,6 +21,7 @@ type updateStoreParams = {
   duty_manager_1_image: string;
   duty_manager_2: string;
   duty_manager_2_image: string;
+  is_active?: boolean;
 }
 
 type getStoresParams = {
@@ -36,6 +37,7 @@ type StorePaginationResponse = {
 const storeAPI: StoreAPI = {
   updateStore: async (token: string, params: updateStoreParams) => {
     const url = getApiUrl()
+    console.log("params ", params)
     const resp = await axios.put(`${url}/stores/${params.id}`, {
       name: params.name,
       address: params.address,
@@ -45,7 +47,8 @@ const storeAPI: StoreAPI = {
       duty_manager_1: params.duty_manager_1,
       duty_manager_1_image: params.duty_manager_1_image,
       duty_manager_2: params.duty_manager_2,
-      duty_manager_2_image: params.duty_manager_2_image
+      duty_manager_2_image: params.duty_manager_2_image,
+      is_active: params.is_active !== undefined ? params.is_active : true
     }, {
       headers: {
         Authorization: "Bearer " + token
@@ -75,7 +78,7 @@ const storeAPI: StoreAPI = {
     const url = new URL(`${getApiUrl()}/stores`)
     if (params.page) url.searchParams.append('page', params.page.toString())
     if (params.page_size) url.searchParams.append('page_size', params.page_size.toString())
-
+    url.searchParams.append('is_active', 'all')
     const resp = await axios.get(`${url}`, {
       headers: {
         Authorization: "Bearer " + token
